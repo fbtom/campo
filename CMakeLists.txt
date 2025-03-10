@@ -8,3 +8,5 @@ add_executable(Campo
   main.cpp
 )
 
+add_subdirectory(external)
+
