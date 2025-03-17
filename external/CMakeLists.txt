@@ -4,7 +4,7 @@ FetchContent_Declare(OpenCV
   GIT_REPOSITORY  https://github.com/opencv/opencv.git
   GIT_TAG         5.x
   GIT_PROGRESS    TRUE
-  GIT_SHALLOW     FALSE
+  GIT_SHALLOW     TRUE 
   SYSTEM
 )
 
