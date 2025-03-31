@@ -28,6 +28,8 @@ set(OpenCVModules
     3d
 )
 
+find_package(OpenGL)
+
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${OpenCV_SOURCE_DIR}/include
     ${OpenCV_BINARY_DIR}
@@ -39,9 +41,27 @@ foreach(module ${OpenCVModules})
     target_include_directories(${PROJECT_NAME} PRIVATE
         ${OPENCV_MODULE_opencv_${module}_LOCATION}/include
     )
-endforeach()
-
-foreach(module ${OpenCVModules})
     target_link_libraries(${PROJECT_NAME} PRIVATE opencv_${module})
 endforeach()
+
+add_library(ImGui STATIC)
+
+set(ImGui_SOURCE_DIR "${CMAKE_BINARY_DIR}/_deps/imgui-src")
+target_include_directories(ImGui PUBLIC
+    ${ImGui_SOURCE_DIR}
+    ${ImGui_SOURCE_DIR}/backends
+    ${GLFW_SOURCE_DIR}/include
+)
+
+target_sources(ImGui PRIVATE
+    ${ImGui_SOURCE_DIR}/imgui.cpp
+    ${ImGui_SOURCE_DIR}/imgui_demo.cpp
+    ${ImGui_SOURCE_DIR}/imgui_draw.cpp
+    ${ImGui_SOURCE_DIR}/imgui_tables.cpp
+    ${ImGui_SOURCE_DIR}/imgui_widgets.cpp
+    ${ImGui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
+    ${ImGui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
+)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE glfw ImGui OpenGL::GL)
 
