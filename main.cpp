@@ -1,12 +1,40 @@
+// System headers
 #include <iostream>
+#include <vector>
+// External headers
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "opencv2/opencv.hpp"
 #include <GLFW/glfw3.h>
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
+// Project headers
+
+// Platform-specific headers
+#ifdef __APPLE__
+#include <AVFoundation/AVFoundation.h>
 
 using std::cerr;
+
+struct CameraInfo
+{
+  uint8_t id;
+  std::string name;
+};
+
+std::vector<CameraInfo> getAvailableCameras() 
+{
+  std::vector<CameraInfo> cameras{};
+
+  NSArray *devices = [AVCaptureDevice devicesWithMediaType::AVMediaTypeVideo];
+  for(NSInteger i = 0; i < [devices cound]; ++i)
+  {
+    AVCaptureDevice *device = [devices objectAtIndex:i];
+    cameras.emplace_back({static_cast<uint8_t>(i), std::string{[[device localizedName] UTF8String]}});
+  }
+
+  return cameras;
+}
 
 void initWindowHint() 
 {
