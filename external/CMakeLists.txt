@@ -20,9 +20,16 @@ FetchContent_Declare(ImGui
   SYSTEM
 )
 
+FetchContent_Declare(GLFW
+  GIT_REPOSITORY  https://github.com/glfw/glfw.git
+  GIT_TAG         3.3.8
+  SYSTEM
+)
+
 FetchContent_MakeAvailable(
   ImGui
   GTest
   OpenCV
+  GLFW
 )
 
