@@ -1,13 +1,20 @@
 #include <iostream>
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
-#include "imgui_impl_metal.h"
 #include "opencv2/opencv.hpp"
 #include <GLFW/glfw3.h>
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 
 using std::cerr;
+
+void initWindowHint() 
+{
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+}
 
 GLuint cvmatToTexture(cv::Mat& mat)
 {
@@ -26,15 +33,14 @@ GLuint cvmatToTexture(cv::Mat& mat)
 
 int main() 
 {
+  // Init Phase
   if(!glfwInit()) 
   {
     return -1;
   }
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
- 
+
+  initWindowHint();
+
   GLFWwindow* window = glfwCreateWindow(800,600, "Campo", NULL, NULL);
   glfwMakeContextCurrent(window);
 
@@ -47,7 +53,8 @@ int main()
     cerr << "Cannot open Your camera\n";
     return -1;
   }
-  
+
+  // Main Phase
   cv::Mat frame{};
   GLuint textureId = 0;
 
@@ -79,11 +86,14 @@ int main()
     glfwSwapBuffers(window);
   }
 
-  ImGui_ImplOpenGL3_Shutdown();
-  ImGui_ImplGlfw_Shutdown();
-  ImGui::DestroyContext();
-  glfwDestroyWindow(window);
-  glfwTerminate();
+  // Shutdown Phase
+  {
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+    glfwDestroyWindow(window);
+    glfwTerminate();
+  }
 
   return 0;
 }
