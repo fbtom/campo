@@ -13,6 +13,7 @@
 // Platform-specific headers
 #ifdef __APPLE__
 #include <AVFoundation/AVFoundation.h>
+#endif
 
 using std::cerr;
 
