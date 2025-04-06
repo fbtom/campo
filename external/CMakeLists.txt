@@ -26,10 +26,20 @@ FetchContent_Declare(GLFW
   SYSTEM
 )
 
+set(CMAKE_POLICY_DEFAULT_CMP0054 NEW) 
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW) 
+
+FetchContent_Declare(nlohmann_json
+  GIT_REPOSITORY  https://github.com/nlohmann/json.git
+  GIT_TAG         v3.11.3
+  SYSTEM
+)
+
 FetchContent_MakeAvailable(
   ImGui
   GTest
   OpenCV
   GLFW
+  nlohmann_json
 )
 
