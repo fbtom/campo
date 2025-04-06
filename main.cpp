@@ -1,27 +1,28 @@
 ///
 /// @file main.cpp
-/// @author fbtom 
-/// @brief 
-/// @date 2025-04-06
-/// 
+/// @author fbtom
+/// @brief
+/// @date 2025-03-07
+///
 /// @copyright Copyright (c) 2025
-/// 
+///
 
 // System headers
 #include <iostream>
 // External headers
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_opengl3.h"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "opencv2/opencv.hpp"
 #include <GLFW/glfw3.h>
-#include "backends/imgui_impl_glfw.h"
-#include "backends/imgui_impl_opengl3.h"
 // Project headers
-#include "camera_utils.hpp"
+#include "utils/camera.hpp"
+#include "utils/json.hpp"
 
 using std::cerr;
 
-void initWindowHint() 
+void initWindowHint()
 {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
@@ -29,7 +30,7 @@ void initWindowHint()
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 }
 
-GLuint cvmatToTexture(cv::Mat& mat)
+GLuint cvmatToTexture(cv::Mat &mat)
 {
   GLuint textureId;
   glGenTextures(1, &textureId);
@@ -44,42 +45,39 @@ GLuint cvmatToTexture(cv::Mat& mat)
   return textureId;
 }
 
-int main() 
+int main()
 {
   // Init Phase
-  if(!glfwInit()) 
+  if (!glfwInit())
   {
     return -1;
   }
 
   initWindowHint();
 
-  GLFWwindow* window = glfwCreateWindow(800,600, "Campo", NULL, NULL);
+  GLFWwindow *window = glfwCreateWindow(800, 600, "Campo", NULL, NULL);
   glfwMakeContextCurrent(window);
 
   ImGui::CreateContext();
   ImGui_ImplGlfw_InitForOpenGL(window, true);
   ImGui_ImplOpenGL3_Init("#version 410");
 
-  auto camera_ids = collectCameraIDs();
-  if(camera_ids.empty()) 
-  {
-    cerr << "No camera found\n";
-    return -1;
-  }
+  const auto camera_ids = utils::getCameraIDs();
+  auto current_id = utils::getValidCameraID(camera_ids, utils::loadCameraID());
 
-  cv::VideoCapture cam(camera_ids.at(0));
+  cv::VideoCapture cam(current_id);
 
   // Main Phase
   cv::Mat frame{};
   GLuint textureId = 0;
 
-  while(!glfwWindowShouldClose(window)) {
+  while (!glfwWindowShouldClose(window))
+  {
     glfwPollEvents();
 
-    cam >> frame; 
+    cam >> frame;
 
-    if(frame.empty()) 
+    if (frame.empty())
     {
       break;
     }
@@ -90,7 +88,8 @@ int main()
     ImGui::NewFrame();
 
     ImGui::Begin("Camera Preview");
-    if(textureId) {
+    if (textureId)
+    {
       ImGui::Image((ImTextureID)(uintptr_t)textureId, ImVec2(frame.cols, frame.rows));
     }
     ImGui::End();
@@ -101,6 +100,8 @@ int main()
 
     glfwSwapBuffers(window);
   }
+
+  utils::saveCameraID(current_id);
 
   // Shutdown Phase
   {

@@ -63,5 +63,4 @@ target_sources(ImGui PRIVATE
     ${ImGui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE glfw ImGui OpenGL::GL)
-
+target_link_libraries(${PROJECT_NAME} PRIVATE glfw ImGui OpenGL::GL nlohmann_json::nlohmann_json)
