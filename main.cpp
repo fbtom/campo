@@ -1,10 +1,23 @@
+///
+/// @file main.cpp
+/// @author fbtom 
+/// @brief 
+/// @date 2025-04-06
+/// 
+/// @copyright Copyright (c) 2025
+/// 
+
+// System headers
 #include <iostream>
+// External headers
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "opencv2/opencv.hpp"
 #include <GLFW/glfw3.h>
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
+// Project headers
+#include "camera_utils.hpp"
 
 using std::cerr;
 
@@ -48,11 +61,14 @@ int main()
   ImGui_ImplGlfw_InitForOpenGL(window, true);
   ImGui_ImplOpenGL3_Init("#version 410");
 
-  cv::VideoCapture cam(0);
-  if(!cam.isOpened()) {
-    cerr << "Cannot open Your camera\n";
+  auto camera_ids = collectCameraIDs();
+  if(camera_ids.empty()) 
+  {
+    cerr << "No camera found\n";
     return -1;
   }
+
+  cv::VideoCapture cam(camera_ids.at(0));
 
   // Main Phase
   cv::Mat frame{};
