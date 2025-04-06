@@ -7,8 +7,12 @@
 /// @copyright Copyright (c) 2025
 /// 
 
+// System headers
 #include <cstdio>
 #include <vector>
+
+// External headers
+#include "opencv2/opencv.hpp"
 
 auto collectCameraIDs()
 {
