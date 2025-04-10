@@ -55,10 +55,24 @@ int main()
 
   initWindowHint();
 
-  GLFWwindow *window = glfwCreateWindow(800, 600, "Campo", NULL, NULL);
+  GLFWwindow *window = glfwCreateWindow(1600, 1024, "Campo", NULL, NULL);
+  if (window == nullptr)
+  {
+    return 1;
+  }
   glfwMakeContextCurrent(window);
+  glfwSwapInterval(1);
 
+  IMGUI_CHECKVERSION();
   ImGui::CreateContext();
+
+  ImGuiIO &io = ImGui::GetIO();
+  (void)io;
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+
+  ImGui::StyleColorsLight();
+
   ImGui_ImplGlfw_InitForOpenGL(window, true);
   ImGui_ImplOpenGL3_Init("#version 410");
 
@@ -87,12 +101,48 @@ int main()
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    ImGui::Begin("Camera Preview");
-    if (textureId)
+    const auto camera_preview_size{ImVec2(1080, 750)};
+    const auto camera_preview_pos{ImVec2(200, 0)};
+
+    const auto left_panel_size{ImVec2(200, 1024)};
+    const auto left_panel_pos{ImVec2(0, 0)};
+
+    ImGui::SetNextWindowSize(left_panel_size);
+    ImGui::SetNextWindowPos(left_panel_pos);
+    // if (ImGui::Begin("Available Cameras", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove))
+    // {
+    if (ImGui::BeginMenuBar())
     {
-      ImGui::Image((ImTextureID)(uintptr_t)textureId, ImVec2(frame.cols, frame.rows));
+      if (ImGui::BeginMenu("Camera"))
+      {
+        if (ImGui::MenuItem("Refresh"))
+        {
+          cam.release();
+          cam.open(current_id);
+        }
+        if (ImGui::MenuItem("Select Camera"))
+        {
+          ImGui::OpenPopup("Camera Selection");
+        }
+        ImGui::Separator();
+        ImGui::EndMenu();
+      }
+      ImGui::EndMenuBar();
     }
-    ImGui::End();
+    // ImGui::End();
+    // }
+
+    ImGui::SetNextWindowSize(camera_preview_size);
+    ImGui::SetNextWindowPos(camera_preview_pos);
+
+    if (ImGui::Begin("Camera Preview", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNav))
+    {
+      if (textureId)
+      {
+        ImGui::Image((ImTextureID)(uintptr_t)textureId, ImVec2(frame.cols, frame.rows));
+      }
+      ImGui::End();
+    }
 
     ImGui::Render();
     glClear(GL_COLOR_BUFFER_BIT);
