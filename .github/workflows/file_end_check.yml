@@ -1,0 +1,33 @@
+name: Newline Check
+
+on:
+  pull_request:
+    paths:
+      - '**/*' 
+
+jobs:
+  check-newline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Check for newline at end of files
+        run: |
+          # Get the list of files changed in this PR
+          FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }})
+          
+          # Check each file for newline at end
+          EXIT_CODE=0
+          for file in $FILES; do
+            if [ -f "$file" ]; then
+              if [ "$(tail -c 1 "$file" | wc -l)" -eq 0 ]; then
+                echo "Error: No newline at end of file $file"
+                EXIT_CODE=1
+              fi
+            fi
+          done
+          
+          exit $EXIT_CODE

@@ -42,4 +42,3 @@ FetchContent_MakeAvailable(
   GLFW
   nlohmann_json
 )
-
