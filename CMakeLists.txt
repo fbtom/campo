@@ -11,6 +11,8 @@ add_executable(${PROJECT_NAME}
 )
 
 add_subdirectory(external)
+add_subdirectory(gui)
+add_subdirectory(utils)
 
 find_package(OpenGL)
 
@@ -35,6 +37,6 @@ target_sources(ImGui PRIVATE
     ${ImGui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE glfw ImGui OpenGL::GL nlohmann_json::nlohmann_json)
+target_link_libraries(${PROJECT_NAME} PRIVATE glfw ImGui OpenGL::GL nlohmann_json::nlohmann_json gui utils)
 
 add_subdirectory(test)
