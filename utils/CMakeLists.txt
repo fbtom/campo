@@ -3,7 +3,7 @@ target_sources(utils INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/camera.hpp 
     ${CMAKE_CURRENT_SOURCE_DIR}/gui.hpp 
     ${CMAKE_CURRENT_SOURCE_DIR}/json.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/texture_utils.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/conversions.hpp
 )
 
 target_link_libraries(utils INTERFACE gui)
