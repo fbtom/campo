@@ -1,0 +1,21 @@
+name: Newline Check
+
+on:
+  pull_request:
+    paths:
+      - '**/*' 
+
+jobs:
+  check-newline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Check for newline at end of files
+        run: |
+          # Find files missing a newline at the end
+          if git diff --cached --patch | grep -q '\\ No newline at end of file'; then
+            echo "Files are missing a newline at the end!"
+            exit 1
+          fi
