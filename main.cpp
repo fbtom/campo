@@ -7,6 +7,8 @@
 /// @copyright Copyright (c) 2025
 ///
 
+#define GL_SILENCE_DEPRECATION
+
 // System headers
 #include <iostream>
 // External headers
@@ -17,33 +19,13 @@
 #include "opencv2/opencv.hpp"
 #include <GLFW/glfw3.h>
 // Project headers
+#include "gui/gui_utils.hpp"
 #include "utils/camera.hpp"
+#include "utils/conversions.hpp"
+#include "utils/gui.hpp"
 #include "utils/json.hpp"
 
 using std::cerr;
-
-void initWindowHint()
-{
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-}
-
-GLuint cvmatToTexture(cv::Mat &mat)
-{
-  GLuint textureId;
-  glGenTextures(1, &textureId);
-  glBindTexture(GL_TEXTURE_2D, textureId);
-
-  cv::cvtColor(mat, mat, cv::COLOR_BGR2RGB);
-
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mat.cols, mat.rows, 0, GL_RGB, GL_UNSIGNED_BYTE, mat.data);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-  return textureId;
-}
 
 int main()
 {
@@ -53,14 +35,16 @@ int main()
     return -1;
   }
 
-  initWindowHint();
+  utils::initWindowHint();
 
-  GLFWwindow *window = glfwCreateWindow(800, 600, "Campo", NULL, NULL);
-  glfwMakeContextCurrent(window);
-
-  ImGui::CreateContext();
-  ImGui_ImplGlfw_InitForOpenGL(window, true);
-  ImGui_ImplOpenGL3_Init("#version 410");
+  auto window_opt = utils::initWindow();
+  if (window_opt.has_value() == false)
+  {
+    cerr << "Failed to create GLFW window\n";
+    glfwTerminate();
+    return -1;
+  }
+  auto window = window_opt.value();
 
   const auto camera_ids = utils::getCameraIDs();
   auto current_id = utils::getValidCameraID(camera_ids, utils::loadCameraID());
@@ -81,18 +65,60 @@ int main()
     {
       break;
     }
-    textureId = cvmatToTexture(frame);
+    textureId = utils::cvMatToTexture(frame);
 
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    ImGui::Begin("Camera Preview");
-    if (textureId)
+    int width{};
+    int height{};
+    glfwGetFramebufferSize(window, &width, &height);
+
+    const auto main_window_size{ImVec2(width, height)};
+    const auto main_window_pos{ImVec2(0, 0)};
+
+    ImGui::SetNextWindowSize(main_window_size);
+    ImGui::SetNextWindowPos(main_window_pos);
+
+    if (ImGui::Begin("Campo", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
     {
-      ImGui::Image((ImTextureID)(uintptr_t)textureId, ImVec2(frame.cols, frame.rows));
+      const auto total_size = ImGui::GetContentRegionAvail();
+      const auto total_width = total_size.x;
+      const auto total_height = total_size.y;
+
+      const auto left_panel_width = total_width * 0.25f;
+      const auto left_panel_pos = ImVec2(left_panel_width, 0);
+      {
+        ImGui::BeginChild("Left Panel", left_panel_pos, true);
+
+        ImGui::Text("Camera ID: %d", current_id);
+        ImGui::Text("FPS: %.2f", 1000.0f / ImGui::GetIO().DeltaTime);
+        ImGui::Text("Frame Size: %dx%d", frame.cols, frame.rows);
+
+        ImGui::EndChild();
+      }
+
+      ImGui::SameLine();
+
+      const auto right_panel_pos = ImVec2(0, 0);
+      {
+        ImGui::BeginChild("Right Panel", right_panel_pos, true);
+
+        if (textureId)
+        {
+          ImVec2 panel_size = ImGui::GetContentRegionAvail();
+          float aspect_ratio = (float)frame.cols / (float)frame.rows;
+          float desiredWidth = panel_size.y * aspect_ratio;
+
+          ImGui::Image((ImTextureID)(intptr_t)textureId, ImVec2(desiredWidth, panel_size.y));
+        }
+
+        ImGui::EndChild();
+      }
+
+      ImGui::End();
     }
-    ImGui::End();
 
     ImGui::Render();
     glClear(GL_COLOR_BUFFER_BIT);
