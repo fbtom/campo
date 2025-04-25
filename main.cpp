@@ -46,7 +46,7 @@ int main()
   }
   auto window = window_opt.value();
 
-  const auto camera_ids = utils::getCameraIDs();
+  auto camera_ids = utils::getCameraIDs();
   auto current_id = utils::getValidCameraID(camera_ids, utils::loadCameraID());
 
   cv::VideoCapture cam(current_id);
@@ -76,7 +76,7 @@ int main()
     glfwGetFramebufferSize(window, &width, &height);
 
     const auto main_window_size{ImVec2(width, height)};
-    const auto main_window_pos{ImVec2(0, 0)};
+    const auto main_window_pos{ImVec2(kWindowPosX, 0)};
 
     ImGui::SetNextWindowSize(main_window_size);
     ImGui::SetNextWindowPos(main_window_pos);
@@ -90,7 +90,32 @@ int main()
       const auto left_panel_width = total_width * 0.25f;
       const auto left_panel_pos = ImVec2(left_panel_width, 0);
       {
-        ImGui::BeginChild("Left Panel", left_panel_pos, true);
+        ImGui::BeginChild("Left Panel", left_panel_pos, true, ImGuiWindowFlags_MenuBar);
+
+        if (ImGui::BeginMenuBar())
+        {
+          if (ImGui::BeginMenu("File"))
+          {
+            if (ImGui::MenuItem("Exit", "Alt+F4"))
+            {
+              glfwSetWindowShouldClose(window, GLFW_TRUE);
+            }
+            ImGui::EndMenu();
+          }
+          if (ImGui::BeginMenu("Camera"))
+          {
+            if (ImGui::MenuItem("Search for connected cameras"))
+            {
+              auto camera_ids = utils::getCameraIDs();
+            }
+            ImGui::EndMenu();
+          }
+          ImGui::EndMenuBar();
+        }
+
+        ImGui::Separator();
+        
+        ImGui::Separator();
 
         ImGui::Text("Camera ID: %d", current_id);
         ImGui::Text("FPS: %.2f", 1000.0f / ImGui::GetIO().DeltaTime);
@@ -130,13 +155,7 @@ int main()
   utils::saveCameraID(current_id);
 
   // Shutdown Phase
-  {
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-    glfwDestroyWindow(window);
-    glfwTerminate();
-  }
+  utils::shutdownAndCleanUp(window);
 
   return 0;
 }

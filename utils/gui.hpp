@@ -63,4 +63,13 @@ namespace utils
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     }
 
+    void shutdownAndCleanUp(GLFWwindow *window)
+    {
+        ImGui_ImplOpenGL3_Shutdown();
+        ImGui_ImplGlfw_Shutdown();
+        ImGui::DestroyContext();
+        glfwDestroyWindow(window);
+        glfwTerminate();
+    }
+
 } // namespace utils
