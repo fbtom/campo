@@ -19,7 +19,7 @@
 #include <GLFW/glfw3.h>
 
 // Project headers
-#include "gui/gui_constants.hpp"
+#include "gui/gui_utils.hpp"
 
 namespace utils
 {

@@ -17,7 +17,7 @@
 #include "opencv2/opencv.hpp"
 #include <GLFW/glfw3.h>
 // Project headers
-#include "gui/gui_constants.hpp"
+#include "gui/gui_utils.hpp"
 #include "utils/camera.hpp"
 #include "utils/conversions.hpp"
 #include "utils/gui.hpp"
