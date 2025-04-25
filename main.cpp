@@ -7,6 +7,8 @@
 /// @copyright Copyright (c) 2025
 ///
 
+#define GL_SILENCE_DEPRECATION
+
 // System headers
 #include <iostream>
 // External headers
