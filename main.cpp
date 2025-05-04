@@ -27,6 +27,14 @@
 
 using std::cerr;
 
+void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
+{
+  if (key == GLFW_KEY_F4 && action == GLFW_PRESS && (mods & GLFW_MOD_ALT))
+  {
+    glfwSetWindowShouldClose(window, GLFW_TRUE);
+  }
+}
+
 int main()
 {
   // Init Phase
@@ -54,6 +62,9 @@ int main()
   // Main Phase
   cv::Mat frame{};
   GLuint textureId = 0;
+
+  // Set callbacks
+  glfwSetKeyCallback(window, key_callback);
 
   while (!glfwWindowShouldClose(window))
   {
@@ -114,7 +125,7 @@ int main()
         }
 
         ImGui::Separator();
-        
+
         ImGui::Separator();
 
         ImGui::Text("Camera ID: %d", current_id);
