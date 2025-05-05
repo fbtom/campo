@@ -57,10 +57,7 @@ int main() {
     if (key == GLFW_KEY_F4 && action == GLFW_PRESS && (mods & GLFW_MOD_ALT)) {
       glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
-  });
 
-  glfwSetKeyCallback(window, [](GLFWwindow *window, int key, int scancode,
-                                int action, int mods) {
     if (key == GLFW_KEY_R && action == GLFW_PRESS &&
         (mods & GLFW_MOD_CONTROL)) {
       auto camera_ids = utils::getCameraIDs();
