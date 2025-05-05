@@ -202,6 +202,62 @@ int main() {
           ImGui::Image(static_cast<ImTextureID>(
                            static_cast<intptr_t>(cameras.at(0).texture_id)),
                        ImVec2(width, height));
+        } else {
+          int columns = available_cameras <= 2 ? 2 : 3;
+          int rows = (available_cameras + columns - 1) / columns;
+
+          const auto cell_width = panel_size.x / columns;
+          const auto cell_height = panel_size.y / rows;
+          const auto cell_size = std::min(cell_width, cell_height);
+
+          const auto grid_width = cell_size * columns;
+          const auto grid_height = cell_size * rows;
+          const auto offset_x = (panel_size.x - grid_width) / 2;
+          const auto offset_y = (panel_size.y - grid_height) / 2;
+
+          int grid_index{0};
+          for (size_t i{0}; i < cameras.size(); ++i) {
+            if (cameras[i].is_available) {
+              const auto cell_position =
+                  ImVec2(offset_x + (grid_index % columns) * cell_size,
+                         offset_y + (grid_index / columns) * cell_size);
+              ImGui::SetCursorPos(cell_position);
+
+              float aspect_ratio = static_cast<float>(cameras[i].frame.cols) /
+                                   static_cast<float>(cameras[i].frame.rows);
+              float width = cell_size;
+              float height = cell_size / aspect_ratio;
+
+              fitInPanel(panel_size, width, height, aspect_ratio);
+              centerImage(panel_size, width, height);
+
+              ImVec2 camera_position = ImGui::GetCursorScreenPos();
+              ImVec2 mouse_position = ImGui::GetIO().MousePos;
+              const auto is_hovered = ImGui::IsMouseHoveringRect(
+                  camera_position, ImVec2(camera_position.x + width,
+                                          camera_position.y + height));
+              if (is_hovered) {
+                ImGui::GetWindowDrawList()->AddRectFilled(
+                    camera_position,
+                    ImVec2(camera_position.x + width,
+                           camera_position.y + height),
+                    IM_COL32(255, 255, 255, 100), 3.0f, 0);
+              }
+              if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && is_hovered) {
+                current_id = cameras[i].id;
+              } else {
+                ImGui::GetWindowDrawList()->AddRect(
+                    camera_position,
+                    ImVec2(camera_position.x + width,
+                           camera_position.y + height),
+                    IM_COL32(255, 255, 255, 100), 3.0f, 0);
+              }
+              ImGui::Image(static_cast<ImTextureID>(
+                               static_cast<intptr_t>(cameras[i].texture_id)),
+                           ImVec2(width, height));
+              grid_index++;
+            }
+          }
         }
 
         ImGui::EndChild();
