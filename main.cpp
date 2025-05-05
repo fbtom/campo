@@ -11,6 +11,7 @@
 
 // System headers
 #include <iostream>
+#include <vector>
 // External headers
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
@@ -26,6 +27,29 @@
 #include "utils/json.hpp"
 
 using std::cerr;
+
+struct CameraData {
+  int id;
+  cv::VideoCapture capture;
+  cv::Mat frame;
+  GLuint texture_id;
+  bool is_available{false};
+};
+
+void fitInPanel(const ImVec2 &panel_size, float &width, float &height,
+                const float &aspect_ratio) {
+  if (width > panel_size.x) {
+    width = panel_size.x;
+    height = width / aspect_ratio;
+  }
+}
+
+void centerImage(const ImVec2 &panel_size, float &width, float &height) {
+  const auto offset_x = (panel_size.x - width) / 2;
+  const auto offset_y = (panel_size.y - height) / 2;
+  ImVec2 panel_center = ImVec2(offset_x, offset_y);
+  ImGui::SetCursorPos(panel_center);
+}
 
 int main() {
   // Init Phase
@@ -46,11 +70,25 @@ int main() {
   auto camera_ids = utils::getCameraIDs();
   auto current_id = utils::getValidCameraID(camera_ids, utils::loadCameraID());
 
+  std::vector<CameraData> cameras{};
+
+  for (const auto &id : camera_ids) {
+    CameraData camera_data{};
+    camera_data.id = id;
+    camera_data.capture.open(id);
+
+    if (camera_data.capture.isOpened()) {
+      camera_data.is_available = true;
+    } else {
+      camera_data.capture.release();
+      camera_data.is_available = false;
+    }
+    cameras.emplace_back(camera_data);
+  }
+
   cv::VideoCapture cam(current_id);
 
   // Main Phase
-  cv::Mat frame{};
-  GLuint textureId = 0;
 
   glfwSetKeyCallback(window, [](GLFWwindow *window, int key, int scancode,
                                 int action, int mods) {
@@ -67,12 +105,17 @@ int main() {
   while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();
 
-    cam >> frame;
+    for (auto &camera : cameras) {
+      if (camera.is_available) {
+        camera.capture.set(cv::CAP_PROP_FPS, 30);
+        camera.capture.set(cv::CAP_PROP_FRAME_WIDTH, 720);
+        camera.capture.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
 
-    if (frame.empty()) {
-      break;
+        camera.capture >> camera.frame;
+
+        camera.texture_id = utils::cvMatToTexture(camera.frame);
+      }
     }
-    textureId = utils::cvMatToTexture(frame);
 
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
@@ -123,7 +166,7 @@ int main() {
 
         ImGui::Text("Camera ID: %d", current_id);
         ImGui::Text("FPS: %.2f", 1000.0f / ImGui::GetIO().DeltaTime);
-        ImGui::Text("Frame Size: %dx%d", frame.cols, frame.rows);
+        // ImGui::Text("Frame Size: %dx%d", frame.cols, frame.rows);
 
         ImGui::EndChild();
       }
@@ -134,13 +177,31 @@ int main() {
       {
         ImGui::BeginChild("Right Panel", right_panel_pos, true);
 
-        if (textureId) {
-          ImVec2 panel_size = ImGui::GetContentRegionAvail();
-          float aspect_ratio = (float)frame.cols / (float)frame.rows;
-          float desiredWidth = panel_size.y * aspect_ratio;
+        int available_cameras = 0;
+        for (const auto &camera : cameras) {
+          if (camera.is_available) {
+            available_cameras++;
+          }
+        }
 
-          ImGui::Image((ImTextureID)(intptr_t)textureId,
-                       ImVec2(desiredWidth, panel_size.y));
+        ImVec2 panel_size = ImGui::GetContentRegionAvail();
+
+        if (available_cameras == 0) {
+          ImGui::SetCursorPos(
+              ImVec2(panel_size.x / 2 - 100, panel_size.y / 2 - 10));
+          ImGui::Text("No camera available");
+        } else if (available_cameras == 1) {
+          float aspect_ratio = static_cast<float>(cameras.at(0).frame.cols) /
+                               static_cast<float>(cameras.at(0).frame.rows);
+          float width = panel_size.y * aspect_ratio;
+          float height = panel_size.y;
+
+          fitInPanel(panel_size, width, height, aspect_ratio);
+          centerImage(panel_size, width, height);
+
+          ImGui::Image(static_cast<ImTextureID>(
+                           static_cast<intptr_t>(cameras.at(0).texture_id)),
+                       ImVec2(width, height));
         }
 
         ImGui::EndChild();
