@@ -21,55 +21,50 @@
 // Project headers
 #include "gui/gui_utils.hpp"
 
-namespace utils
-{
+namespace utils {
 
-    void setupIoFlags()
-    {
-        ImGuiIO &io = ImGui::GetIO();
-        (void)io;
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
-    }
+void setupIoFlags() {
+  ImGuiIO &io = ImGui::GetIO();
+  (void)io;
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+}
 
-    std::optional<GLFWwindow *> initWindow()
-    {
-        GLFWwindow *window = glfwCreateWindow(kWindowWidth, kWindowHeight, "Campo", NULL, NULL);
-        if (window == nullptr)
-        {
-            return std::nullopt;
-        }
-        glfwMakeContextCurrent(window);
-        glfwSwapInterval(1);
+std::optional<GLFWwindow *> initWindow() {
+  GLFWwindow *window =
+      glfwCreateWindow(kWindowWidth, kWindowHeight, "Campo", NULL, NULL);
+  if (window == nullptr) {
+    return std::nullopt;
+  }
+  glfwMakeContextCurrent(window);
+  glfwSwapInterval(1);
 
-        IMGUI_CHECKVERSION();
-        ImGui::CreateContext();
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
 
-        setupIoFlags();
+  setupIoFlags();
 
-        ImGui::StyleColorsLight();
+  ImGui::StyleColorsLight();
 
-        ImGui_ImplGlfw_InitForOpenGL(window, true);
-        ImGui_ImplOpenGL3_Init("#version 410");
+  ImGui_ImplGlfw_InitForOpenGL(window, true);
+  ImGui_ImplOpenGL3_Init("#version 410");
 
-        return window;
-    }
+  return window;
+}
 
-    void initWindowHint()
-    {
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    }
+void initWindowHint() {
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+}
 
-    void shutdownAndCleanUp(GLFWwindow *window)
-    {
-        ImGui_ImplOpenGL3_Shutdown();
-        ImGui_ImplGlfw_Shutdown();
-        ImGui::DestroyContext();
-        glfwDestroyWindow(window);
-        glfwTerminate();
-    }
+void shutdownAndCleanUp(GLFWwindow *window) {
+  ImGui_ImplOpenGL3_Shutdown();
+  ImGui_ImplGlfw_Shutdown();
+  ImGui::DestroyContext();
+  glfwDestroyWindow(window);
+  glfwTerminate();
+}
 
 } // namespace utils

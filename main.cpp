@@ -27,27 +27,16 @@
 
 using std::cerr;
 
-void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
-{
-  if (key == GLFW_KEY_F4 && action == GLFW_PRESS && (mods & GLFW_MOD_ALT))
-  {
-    glfwSetWindowShouldClose(window, GLFW_TRUE);
-  }
-}
-
-int main()
-{
+int main() {
   // Init Phase
-  if (!glfwInit())
-  {
+  if (!glfwInit()) {
     return -1;
   }
 
   utils::initWindowHint();
 
   auto window_opt = utils::initWindow();
-  if (window_opt.has_value() == false)
-  {
+  if (window_opt.has_value() == false) {
     cerr << "Failed to create GLFW window\n";
     glfwTerminate();
     return -1;
@@ -63,17 +52,27 @@ int main()
   cv::Mat frame{};
   GLuint textureId = 0;
 
-  // Set callbacks
-  glfwSetKeyCallback(window, key_callback);
+  glfwSetKeyCallback(window, [](GLFWwindow *window, int key, int scancode,
+                                int action, int mods) {
+    if (key == GLFW_KEY_F4 && action == GLFW_PRESS && (mods & GLFW_MOD_ALT)) {
+      glfwSetWindowShouldClose(window, GLFW_TRUE);
+    }
+  });
 
-  while (!glfwWindowShouldClose(window))
-  {
+  glfwSetKeyCallback(window, [](GLFWwindow *window, int key, int scancode,
+                                int action, int mods) {
+    if (key == GLFW_KEY_R && action == GLFW_PRESS &&
+        (mods & GLFW_MOD_CONTROL)) {
+      auto camera_ids = utils::getCameraIDs();
+    }
+  });
+
+  while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();
 
     cam >> frame;
 
-    if (frame.empty())
-    {
+    if (frame.empty()) {
       break;
     }
     textureId = utils::cvMatToTexture(frame);
@@ -92,8 +91,9 @@ int main()
     ImGui::SetNextWindowSize(main_window_size);
     ImGui::SetNextWindowPos(main_window_pos);
 
-    if (ImGui::Begin("Campo", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove))
-    {
+    if (ImGui::Begin("Campo", NULL,
+                     ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar |
+                         ImGuiWindowFlags_NoMove)) {
       const auto total_size = ImGui::GetContentRegionAvail();
       const auto total_width = total_size.x;
       const auto total_height = total_size.y;
@@ -101,22 +101,18 @@ int main()
       const auto left_panel_width = total_width * 0.25f;
       const auto left_panel_pos = ImVec2(left_panel_width, 0);
       {
-        ImGui::BeginChild("Left Panel", left_panel_pos, true, ImGuiWindowFlags_MenuBar);
+        ImGui::BeginChild("Left Panel", left_panel_pos, true,
+                          ImGuiWindowFlags_MenuBar);
 
-        if (ImGui::BeginMenuBar())
-        {
-          if (ImGui::BeginMenu("File"))
-          {
-            if (ImGui::MenuItem("Exit", "Alt+F4"))
-            {
+        if (ImGui::BeginMenuBar()) {
+          if (ImGui::BeginMenu("File")) {
+            if (ImGui::MenuItem("Exit", "Alt+F4")) {
               glfwSetWindowShouldClose(window, GLFW_TRUE);
             }
             ImGui::EndMenu();
           }
-          if (ImGui::BeginMenu("Camera"))
-          {
-            if (ImGui::MenuItem("Search for connected cameras"))
-            {
+          if (ImGui::BeginMenu("Camera")) {
+            if (ImGui::MenuItem("Search for connected cameras")) {
               auto camera_ids = utils::getCameraIDs();
             }
             ImGui::EndMenu();
@@ -141,13 +137,13 @@ int main()
       {
         ImGui::BeginChild("Right Panel", right_panel_pos, true);
 
-        if (textureId)
-        {
+        if (textureId) {
           ImVec2 panel_size = ImGui::GetContentRegionAvail();
           float aspect_ratio = (float)frame.cols / (float)frame.rows;
           float desiredWidth = panel_size.y * aspect_ratio;
 
-          ImGui::Image((ImTextureID)(intptr_t)textureId, ImVec2(desiredWidth, panel_size.y));
+          ImGui::Image((ImTextureID)(intptr_t)textureId,
+                       ImVec2(desiredWidth, panel_size.y));
         }
 
         ImGui::EndChild();
