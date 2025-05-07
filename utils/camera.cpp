@@ -1,3 +1,12 @@
+///
+/// @file main.cpp
+/// @author fbtom
+/// @brief
+/// @date 2025-05-08
+///
+/// @copyright Copyright (c) 2025
+///
+
 #include "camera.hpp"
 
 namespace utils {
@@ -47,6 +56,26 @@ void refreshCameraList(std::vector<CameraData> &container,
       camera_data.is_available = false;
     }
     container.emplace_back(camera_data);
+  }
+}
+
+void processCameraFrames(
+    std::vector<utils::CameraData> &cameras,
+    std::vector<gui::CameraStream> &current_camera_streams) {
+  current_camera_streams.clear();
+  for (auto &camera : cameras) {
+    if (camera.is_available) {
+      camera.capture.set(cv::CAP_PROP_FPS, 60);
+
+      camera.capture >> camera.frame;
+
+      if (!camera.frame.empty()) {
+        camera.texture_id = utils::cvMatToTexture(camera.frame);
+        current_camera_streams.push_back(
+            {static_cast<ImTextureID>(camera.texture_id), camera.frame.cols,
+             camera.frame.rows, camera.id});
+      }
+    }
   }
 }
 

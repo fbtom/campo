@@ -1,3 +1,12 @@
+///
+/// @file main.cpp
+/// @author fbtom
+/// @brief
+/// @date 2025-05-08
+///
+/// @copyright Copyright (c) 2025
+///
+
 #pragma once
 
 #include "gui_utils.hpp"

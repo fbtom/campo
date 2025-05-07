@@ -8,6 +8,7 @@
 ///
 
 #pragma once
+
 // System headers
 #include <optional>
 

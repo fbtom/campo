@@ -6,3 +6,5 @@ target_sources(gui INTERFACE    ${CMAKE_CURRENT_SOURCE_DIR}/gui_utils.hpp
 target_include_directories(gui INTERFACE 
     ${CMAKE_SOURCE_DIR}
 )
+
+target_link_libraries(gui INTERFACE ImGui)

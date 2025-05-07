@@ -18,6 +18,11 @@
 #include "nlohmann/json.hpp"
 #include "opencv2/opencv.hpp"
 #include <GLFW/glfw3.h>
+#include <imgui.h>
+
+// Project headers
+#include "gui/grid_display.hpp"
+#include "utils/conversions.hpp"
 
 namespace utils {
 
@@ -41,5 +46,9 @@ auto getValidCameraID(const std::vector<int> &camera_ids,
 
 void refreshCameraList(std::vector<CameraData> &container,
                        const std::vector<int> &new_camera_ids);
+
+void processCameraFrames(
+    std::vector<utils::CameraData> &cameras,
+    std::vector<gui::CameraStream> &current_camera_streams);
 
 } // namespace utils
