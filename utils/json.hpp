@@ -22,45 +22,37 @@
 constexpr char const *CameraID = "camera_id";
 constexpr char const *Config = "config.json";
 
-namespace utils
-{
+namespace utils {
 
-    auto loadCameraID()
-    {
-        std::optional<int> camera_id{};
-        std::ifstream file{Config};
+auto loadCameraID() {
+  std::optional<int> camera_id{};
+  std::ifstream file{Config};
 
-        if (file.is_open())
-        {
-            nlohmann::json config{};
+  if (file.is_open()) {
+    nlohmann::json config{};
 
-            file >> config;
+    file >> config;
 
-            if (config.contains(CameraID))
-            {
-                camera_id = config[CameraID].get<int>();
-            }
-        }
-
-        return camera_id;
+    if (config.contains(CameraID)) {
+      camera_id = config[CameraID].get<int>();
     }
+  }
 
-    auto saveCameraID(const int camera_id)
-    {
-        nlohmann::json config{};
-        config[CameraID] = camera_id;
+  return camera_id;
+}
 
-        std::ofstream file(std::string{Config});
+auto saveCameraID(const int camera_id) {
+  nlohmann::json config{};
+  config[CameraID] = camera_id;
 
-        if (file.is_open())
-        {
-            file << config.dump(4);
-        }
-        else
-        {
-            // TODO: create logs with glog
-            std::cerr << "INFO: Failed to save camera id.\n";
-        }
-    }
+  std::ofstream file(std::string{Config});
+
+  if (file.is_open()) {
+    file << config.dump(4);
+  } else {
+    // TODO: create logs with glog
+    std::cerr << "INFO: Failed to save camera id.\n";
+  }
+}
 
 } // namespace utils
