@@ -52,6 +52,16 @@ std::optional<GLFWwindow *> initWindow() {
   return window;
 }
 
+GLFWwindow *initWindowValue() {
+  auto window_opt = initWindow();
+  if (!window_opt.has_value()) {
+    std::cerr << "Failed to create GLFW window\n";
+    glfwTerminate();
+    exit(-1);
+  }
+  return window_opt.value();
+}
+
 void initWindowHint() {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);

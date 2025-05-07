@@ -20,262 +20,144 @@
 #include "opencv2/opencv.hpp"
 #include <GLFW/glfw3.h>
 // Project headers
+#include "gui/grid_display.hpp"
 #include "gui/gui_utils.hpp"
+#include "gui/menu.hpp"
+#include "utils/callback_handler.hpp"
 #include "utils/camera.hpp"
 #include "utils/conversions.hpp"
 #include "utils/gui.hpp"
 #include "utils/json.hpp"
 
 using std::cerr;
-
-struct CameraData {
-  int id;
-  cv::VideoCapture capture;
-  cv::Mat frame;
-  GLuint texture_id;
-  bool is_available{false};
+struct Frame {
+  int width;
+  int height;
 };
 
-void fitInPanel(const ImVec2 &panel_size, float &width, float &height,
-                const float &aspect_ratio) {
-  if (width > panel_size.x) {
-    width = panel_size.x;
-    height = width / aspect_ratio;
+void processCameraFrames(
+    std::vector<utils::CameraData> &cameras,
+    std::vector<gui::CameraStream> &current_camera_streams) {
+  current_camera_streams.clear();
+  for (auto &camera : cameras) {
+    if (camera.is_available) {
+      camera.capture.set(cv::CAP_PROP_FPS, 60);
+
+      camera.capture >> camera.frame;
+
+      if (!camera.frame.empty()) {
+        camera.texture_id = utils::cvMatToTexture(camera.frame);
+        current_camera_streams.push_back(
+            {static_cast<ImTextureID>(camera.texture_id), camera.frame.cols,
+             camera.frame.rows, camera.id});
+      }
+    }
   }
 }
 
-void centerImage(const ImVec2 &panel_size, float &width, float &height) {
-  const auto offset_x = (panel_size.x - width) / 2;
-  const auto offset_y = (panel_size.y - height) / 2;
-  ImVec2 panel_center = ImVec2(offset_x, offset_y);
-  ImGui::SetCursorPos(panel_center);
+void renderLeftPanel(GLFWwindow *window, utils::AppContext &app_context,
+                     gui::GridDisplay &grid_display) {
+  ImGui::BeginChild("Left Panel",
+                    ImVec2(ImGui::GetContentRegionAvail().x * 0.25f, 0), true,
+                    ImGuiWindowFlags_MenuBar);
+
+  gui::renderMenuBar(window, app_context, grid_display);
+
+  ImGui::Separator();
+
+  if (!app_context.cameras_ptr->empty()) {
+    gui::renderCameraDetails(*app_context.cameras_ptr);
+  } else {
+    ImGui::Text("No cameras available.");
+  }
+
+  ImGui::EndChild();
+}
+
+void renderRightPanel(gui::GridDisplay &grid_display, int &current_id) {
+  ImGui::BeginChild("Right Panel", ImVec2(0, 0), true);
+
+  std::optional<int> choosen_camera = grid_display.renderGrid();
+  if (choosen_camera.has_value()) {
+    current_id = choosen_camera.value();
+  }
+
+  ImGui::EndChild();
+}
+
+void initNewFrame() {
+  ImGui_ImplOpenGL3_NewFrame();
+  ImGui_ImplGlfw_NewFrame();
+  ImGui::NewFrame();
+}
+
+void renderGui(GLFWwindow *window, utils::AppContext &app_context,
+               gui::GridDisplay &grid_display) {
+  initNewFrame();
+
+  Frame frame{};
+  glfwGetFramebufferSize(window, &frame.width, &frame.height);
+
+  const auto main_window_size{ImVec2(frame.width, frame.height)};
+  const auto main_window_pos{ImVec2(kWindowPosX, 0)};
+
+  ImGui::SetNextWindowSize(main_window_size);
+  ImGui::SetNextWindowPos(main_window_pos);
+
+  if (ImGui::Begin("Campo", NULL,
+                   ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar |
+                       ImGuiWindowFlags_NoMove)) {
+    renderLeftPanel(window, app_context, grid_display);
+
+    ImGui::SameLine();
+
+    renderRightPanel(grid_display, *app_context.current_id_ptr);
+    ImGui::End();
+  }
+
+  ImGui::Render();
+  glClear(GL_COLOR_BUFFER_BIT);
+  ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 int main() {
-  // Init Phase
   if (!glfwInit()) {
     return -1;
   }
-
   utils::initWindowHint();
 
-  auto window_opt = utils::initWindow();
-  if (window_opt.has_value() == false) {
-    cerr << "Failed to create GLFW window\n";
-    glfwTerminate();
-    return -1;
-  }
-  auto window = window_opt.value();
+  auto window = utils::initWindowValue();
 
-  auto camera_ids = utils::getCameraIDs();
-  auto current_id = utils::getValidCameraID(camera_ids, utils::loadCameraID());
+  std::vector<utils::CameraData> cameras{};
+  gui::GridDisplay grid_display{};
+  int current_id{0};
 
-  std::vector<CameraData> cameras{};
+  utils::AppContext app_context{};
+  app_context.cameras_ptr = &cameras;
+  app_context.current_id_ptr = &current_id;
+  glfwSetWindowUserPointer(window, &app_context);
 
-  for (const auto &id : camera_ids) {
-    CameraData camera_data{};
-    camera_data.id = id;
-    camera_data.capture.open(id);
+  auto initial_camera_ids = utils::getCameraIDs();
+  utils::refreshCameraList(cameras, initial_camera_ids);
+  current_id =
+      utils::getValidCameraID(initial_camera_ids, utils::loadCameraID());
 
-    if (camera_data.capture.isOpened()) {
-      camera_data.is_available = true;
-    } else {
-      camera_data.capture.release();
-      camera_data.is_available = false;
-    }
-    cameras.emplace_back(camera_data);
-  }
-
-  cv::VideoCapture cam(current_id);
-
-  // Main Phase
-
-  glfwSetKeyCallback(window, [](GLFWwindow *window, int key, int scancode,
-                                int action, int mods) {
-    if (key == GLFW_KEY_F4 && action == GLFW_PRESS && (mods & GLFW_MOD_ALT)) {
-      glfwSetWindowShouldClose(window, GLFW_TRUE);
-    }
-
-    if (key == GLFW_KEY_R && action == GLFW_PRESS &&
-        (mods & GLFW_MOD_CONTROL)) {
-      auto camera_ids = utils::getCameraIDs();
-    }
-  });
+  glfwSetKeyCallback(window, utils::mainWindowCallback);
 
   while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();
 
-    for (auto &camera : cameras) {
-      if (camera.is_available) {
-        camera.capture.set(cv::CAP_PROP_FPS, 30);
-        camera.capture.set(cv::CAP_PROP_FRAME_WIDTH, 720);
-        camera.capture.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
+    std::vector<gui::CameraStream> current_camera_streams{};
+    processCameraFrames(cameras, current_camera_streams);
 
-        camera.capture >> camera.frame;
+    grid_display.setCameraData(current_camera_streams);
 
-        camera.texture_id = utils::cvMatToTexture(camera.frame);
-      }
-    }
-
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-
-    int width{};
-    int height{};
-    glfwGetFramebufferSize(window, &width, &height);
-
-    const auto main_window_size{ImVec2(width, height)};
-    const auto main_window_pos{ImVec2(kWindowPosX, 0)};
-
-    ImGui::SetNextWindowSize(main_window_size);
-    ImGui::SetNextWindowPos(main_window_pos);
-
-    if (ImGui::Begin("Campo", NULL,
-                     ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar |
-                         ImGuiWindowFlags_NoMove)) {
-      const auto total_size = ImGui::GetContentRegionAvail();
-      const auto total_width = total_size.x;
-      const auto total_height = total_size.y;
-
-      const auto left_panel_width = total_width * 0.25f;
-      const auto left_panel_pos = ImVec2(left_panel_width, 0);
-      {
-        ImGui::BeginChild("Left Panel", left_panel_pos, true,
-                          ImGuiWindowFlags_MenuBar);
-
-        if (ImGui::BeginMenuBar()) {
-          if (ImGui::BeginMenu("File")) {
-            if (ImGui::MenuItem("Exit", "Alt+F4")) {
-              glfwSetWindowShouldClose(window, GLFW_TRUE);
-            }
-            ImGui::EndMenu();
-          }
-          if (ImGui::BeginMenu("Camera")) {
-            if (ImGui::MenuItem("Search for connected cameras")) {
-              auto camera_ids = utils::getCameraIDs();
-            }
-            ImGui::EndMenu();
-          }
-          ImGui::EndMenuBar();
-        }
-
-        ImGui::Separator();
-
-        ImGui::Separator();
-
-        ImGui::Text("Camera ID: %d", current_id);
-        ImGui::Text("FPS: %.2f", 1000.0f / ImGui::GetIO().DeltaTime);
-        // ImGui::Text("Frame Size: %dx%d", frame.cols, frame.rows);
-
-        ImGui::EndChild();
-      }
-
-      ImGui::SameLine();
-
-      const auto right_panel_pos = ImVec2(0, 0);
-      {
-        ImGui::BeginChild("Right Panel", right_panel_pos, true);
-
-        int available_cameras = 0;
-        for (const auto &camera : cameras) {
-          if (camera.is_available) {
-            available_cameras++;
-          }
-        }
-
-        ImVec2 panel_size = ImGui::GetContentRegionAvail();
-
-        if (available_cameras == 0) {
-          ImGui::SetCursorPos(
-              ImVec2(panel_size.x / 2 - 100, panel_size.y / 2 - 10));
-          ImGui::Text("No camera available");
-        } else if (available_cameras == 1) {
-          float aspect_ratio = static_cast<float>(cameras.at(0).frame.cols) /
-                               static_cast<float>(cameras.at(0).frame.rows);
-          float width = panel_size.y * aspect_ratio;
-          float height = panel_size.y;
-
-          fitInPanel(panel_size, width, height, aspect_ratio);
-          centerImage(panel_size, width, height);
-
-          ImGui::Image(static_cast<ImTextureID>(
-                           static_cast<intptr_t>(cameras.at(0).texture_id)),
-                       ImVec2(width, height));
-        } else {
-          int columns = available_cameras <= 2 ? 2 : 3;
-          int rows = (available_cameras + columns - 1) / columns;
-
-          const auto cell_width = panel_size.x / columns;
-          const auto cell_height = panel_size.y / rows;
-          const auto cell_size = std::min(cell_width, cell_height);
-
-          const auto grid_width = cell_size * columns;
-          const auto grid_height = cell_size * rows;
-          const auto offset_x = (panel_size.x - grid_width) / 2;
-          const auto offset_y = (panel_size.y - grid_height) / 2;
-
-          int grid_index{0};
-          for (size_t i{0}; i < cameras.size(); ++i) {
-            if (cameras[i].is_available) {
-              const auto cell_position =
-                  ImVec2(offset_x + (grid_index % columns) * cell_size,
-                         offset_y + (grid_index / columns) * cell_size);
-              ImGui::SetCursorPos(cell_position);
-
-              float aspect_ratio = static_cast<float>(cameras[i].frame.cols) /
-                                   static_cast<float>(cameras[i].frame.rows);
-              float width = cell_size;
-              float height = cell_size / aspect_ratio;
-
-              fitInPanel(panel_size, width, height, aspect_ratio);
-              centerImage(panel_size, width, height);
-
-              ImVec2 camera_position = ImGui::GetCursorScreenPos();
-              ImVec2 mouse_position = ImGui::GetIO().MousePos;
-              const auto is_hovered = ImGui::IsMouseHoveringRect(
-                  camera_position, ImVec2(camera_position.x + width,
-                                          camera_position.y + height));
-              if (is_hovered) {
-                ImGui::GetWindowDrawList()->AddRectFilled(
-                    camera_position,
-                    ImVec2(camera_position.x + width,
-                           camera_position.y + height),
-                    IM_COL32(255, 255, 255, 100), 3.0f, 0);
-              }
-              if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && is_hovered) {
-                current_id = cameras[i].id;
-              } else {
-                ImGui::GetWindowDrawList()->AddRect(
-                    camera_position,
-                    ImVec2(camera_position.x + width,
-                           camera_position.y + height),
-                    IM_COL32(255, 255, 255, 100), 3.0f, 0);
-              }
-              ImGui::Image(static_cast<ImTextureID>(
-                               static_cast<intptr_t>(cameras[i].texture_id)),
-                           ImVec2(width, height));
-              grid_index++;
-            }
-          }
-        }
-
-        ImGui::EndChild();
-      }
-
-      ImGui::End();
-    }
-
-    ImGui::Render();
-    glClear(GL_COLOR_BUFFER_BIT);
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    renderGui(window, app_context, grid_display);
 
     glfwSwapBuffers(window);
   }
 
   utils::saveCameraID(current_id);
-
-  // Shutdown Phase
   utils::shutdownAndCleanUp(window);
 
   return 0;

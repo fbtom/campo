@@ -17,48 +17,29 @@
 // External headers
 #include "nlohmann/json.hpp"
 #include "opencv2/opencv.hpp"
+#include <GLFW/glfw3.h>
 
 namespace utils {
-auto getCameraIDs() {
-  FILE *system_stderr = stderr;
-#ifdef _WIN32
-  FILE *null_stream = freopen("NUL", "w", stderr);
-#else
-  FILE *null_stream = freopen("/dev/null", "w", stderr);
-#endif
 
-  std::vector<int> camera_ids{};
-  size_t max_camera_id = 50;
-  for (size_t i = 0; i < max_camera_id; ++i) {
-    cv::VideoCapture cam(i);
-    if (cam.isOpened()) {
-      camera_ids.push_back(i);
-      cam.release();
-    }
-  }
+struct CameraData {
+  int id;
+  cv::VideoCapture capture;
+  cv::Mat frame;
+  GLuint texture_id;
+  bool is_available{false};
+};
 
-  fflush(stderr);
-  stderr = system_stderr;
+struct AppContext {
+  std::vector<CameraData> *cameras_ptr;
+  int *current_id_ptr;
+};
 
-  return camera_ids;
-}
+auto getCameraIDs() -> std::vector<int>;
 
 auto getValidCameraID(const std::vector<int> &camera_ids,
-                      const std::optional<int> saved_id) {
-  if (camera_ids.empty()) {
-    std::cerr << "No camera has been found.\n";
-    return -1;
-  }
+                      const std::optional<int> saved_id) -> int;
 
-  if (saved_id.has_value()) {
-    const auto id = saved_id.value();
-    if (std::find(camera_ids.begin(), camera_ids.end(), id) !=
-        camera_ids.end()) {
-      return id;
-    }
-  }
-
-  return camera_ids.front();
-}
+void refreshCameraList(std::vector<CameraData> &container,
+                       const std::vector<int> &new_camera_ids);
 
 } // namespace utils
