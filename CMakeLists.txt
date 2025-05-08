@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include(utils/utils.cmake)
 
 find_package(OpenGL)
+add_subdirectory(external)
 
 add_library(ImGui STATIC)
 
@@ -31,7 +32,6 @@ add_executable(${PROJECT_NAME}
   main.cpp
 )
 
-add_subdirectory(external)
 add_subdirectory(gui)
 add_subdirectory(utils)
 
