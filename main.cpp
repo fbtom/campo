@@ -59,8 +59,8 @@ int main() {
   while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();
 
-    std::vector<gui::CameraStream> current_camera_streams{};
-    utils::processCameraFrames(cameras, current_camera_streams);
+    std::vector<gui::CameraStream> current_camera_streams{
+        utils::processCameraFrames(cameras)};
 
     grid_display.setCameraData(current_camera_streams);
 

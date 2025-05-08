@@ -24,8 +24,11 @@ constexpr char const *Config = "config.json";
 
 namespace utils {
 
+/// @brief  Load the camera ID from a JSON configuration file.
+/// @return std::optional<int> representing the camera ID. If the file does not
+///         exist or the camera ID is not found, it returns std::nullopt.
 auto loadCameraID() {
-  std::optional<int> camera_id{};
+  std::optional<int> camera_id{std::nullopt};
   std::ifstream file{Config};
 
   if (file.is_open()) {
@@ -41,6 +44,8 @@ auto loadCameraID() {
   return camera_id;
 }
 
+/// @brief Save the camera ID to a JSON configuration file.
+/// @param camera_id The camera ID to save.
 auto saveCameraID(const int camera_id) {
   nlohmann::json config{};
   config[CameraID] = camera_id;
