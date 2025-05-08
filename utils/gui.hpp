@@ -58,7 +58,7 @@ std::optional<GLFWwindow *> initWindow() {
   return window;
 }
 
-/// @brief Performs check for correct GLFWwindow intialization.
+/// @brief Performs check for correct GLFWwindow initialization.
 /// @return GLFWwindow* pointer if successful, otherwise exits the program.
 GLFWwindow *initWindowValue() {
   auto window_opt = initWindow();

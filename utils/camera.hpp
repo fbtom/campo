@@ -58,7 +58,7 @@ void refreshCameraList(std::vector<CameraData> &container,
 
 /// @brief Processes frames and generates a list of CameraStream.
 /// @param cameras as a list of CameraData representing the cameras.
-/// @return std::vector<gui::CameraStream> containing camera informations.
+/// @return std::vector<gui::CameraStream> containing camera information.
 std::vector<gui::CameraStream>
 processCameraFrames(std::vector<utils::CameraData> &cameras);
 

@@ -12,6 +12,6 @@
 namespace gui {
 
 constexpr const char *const kAltF4 = "Alt+F4";
-constexpr const char *const kCtrlR = "Crtl+R";
+constexpr const char *const kCtrlR = "Ctrl+R";
 
 } // namespace gui
