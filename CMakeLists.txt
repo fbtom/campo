@@ -6,19 +6,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(utils/utils.cmake)
 
-add_executable(${PROJECT_NAME}
-  main.cpp
-)
-
-add_subdirectory(external)
-add_subdirectory(gui)
-add_subdirectory(utils)
-
 find_package(OpenGL)
+add_subdirectory(external)
 
 add_library(ImGui STATIC)
-
-target_open_cv(${PROJECT_NAME})
 
 set(ImGui_SOURCE_DIR "${CMAKE_BINARY_DIR}/_deps/imgui-src")
 target_include_directories(ImGui PUBLIC
@@ -37,6 +28,22 @@ target_sources(ImGui PRIVATE
     ${ImGui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE glfw ImGui OpenGL::GL nlohmann_json::nlohmann_json gui utils)
+add_executable(${PROJECT_NAME}
+  main.cpp
+)
+
+add_subdirectory(gui)
+add_subdirectory(utils)
+
+target_open_cv(${PROJECT_NAME}) 
+
+target_link_libraries(${PROJECT_NAME} PRIVATE 
+    glfw 
+    ImGui 
+    OpenGL::GL 
+    nlohmann_json::nlohmann_json 
+    gui 
+    utils
+)
 
 add_subdirectory(test)

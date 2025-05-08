@@ -20,7 +20,7 @@ namespace utils {
  * @param mat The OpenCV matrix to convert
  * @return The OpenGL texture ID
  */
-GLuint cvMatToTexture(cv::Mat &mat) {
+inline GLuint cvMatToTexture(cv::Mat &mat) {
   GLuint textureId;
   glGenTextures(1, &textureId);
   glBindTexture(GL_TEXTURE_2D, textureId);
