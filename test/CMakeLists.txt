@@ -12,10 +12,13 @@ target_include_directories(camera_test PRIVATE
 )
 
 target_link_libraries(camera_test PRIVATE
+    utils 
     GTest::gtest_main
     GTest::gmock
     nlohmann_json::nlohmann_json
     OpenGL::GL
+    glfw
+    ImGui
 )
 
 include(GoogleTest)

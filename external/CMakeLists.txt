@@ -1,8 +1,8 @@
 include(FetchContent)
 
 FetchContent_Declare(OpenCV
-  GIT_REPOSITORY  https://github.com/opencv/opencv.git
-  GIT_TAG         5.x
+  GIT_REPOSITORY  https://github.com/fbtom/opencv.git
+  GIT_TAG         v5.x.0
   GIT_PROGRESS    TRUE
   GIT_SHALLOW     TRUE 
   SYSTEM
