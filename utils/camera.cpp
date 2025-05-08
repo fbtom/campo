@@ -59,10 +59,9 @@ void refreshCameraList(std::vector<CameraData> &container,
   }
 }
 
-void processCameraFrames(
-    std::vector<utils::CameraData> &cameras,
-    std::vector<gui::CameraStream> &current_camera_streams) {
-  current_camera_streams.clear();
+std::vector<gui::CameraStream>
+processCameraFrames(std::vector<utils::CameraData> &cameras) {
+  auto camera_streams = std::vector<gui::CameraStream>{};
   for (auto &camera : cameras) {
     if (camera.is_available) {
       camera.capture.set(cv::CAP_PROP_FPS, 60);
@@ -71,12 +70,14 @@ void processCameraFrames(
 
       if (!camera.frame.empty()) {
         camera.texture_id = utils::cvMatToTexture(camera.frame);
-        current_camera_streams.push_back(
-            {static_cast<ImTextureID>(camera.texture_id), camera.frame.cols,
-             camera.frame.rows, camera.id});
+        camera_streams.push_back({static_cast<ImTextureID>(camera.texture_id),
+                                  camera.frame.cols, camera.frame.rows,
+                                  camera.id});
       }
     }
   }
+
+  return camera_streams;
 }
 
 } // namespace utils

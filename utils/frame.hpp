@@ -10,6 +10,8 @@
 #pragma once
 
 namespace utils {
+
+/// @brief A structure representing a frame with width and height.
 struct Frame {
   int width;
   int height;

@@ -24,6 +24,7 @@
 
 namespace utils {
 
+/// @brief Setup Keyboard and Gamepad
 void setupIoFlags() {
   ImGuiIO &io = ImGui::GetIO();
   (void)io;
@@ -31,6 +32,10 @@ void setupIoFlags() {
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
 }
 
+/// @brief Initializes a GLFW window and sets up ImGui context for rendering a
+/// graphical user interface.
+/// @return std::optional<GLFWwindow *> A pointer to the created GLFW window if
+/// successful, otherwise an empty optional.
 std::optional<GLFWwindow *> initWindow() {
   GLFWwindow *window =
       glfwCreateWindow(kWindowWidth, kWindowHeight, "Campo", NULL, NULL);
@@ -53,6 +58,8 @@ std::optional<GLFWwindow *> initWindow() {
   return window;
 }
 
+/// @brief Performs check for correct GLFWwindow initialization.
+/// @return GLFWwindow* pointer if successful, otherwise exits the program.
 GLFWwindow *initWindowValue() {
   auto window_opt = initWindow();
   if (!window_opt.has_value()) {
@@ -63,6 +70,9 @@ GLFWwindow *initWindowValue() {
   return window_opt.value();
 }
 
+/// @brief Initializes GLFW window hints for OpenGL context version and profile.
+/// @note Sets the OpenGL context version to 4.1 and specifies the core
+/// profile.
 void initWindowHint() {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
@@ -70,6 +80,9 @@ void initWindowHint() {
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 }
 
+/// @brief Shuts down ImGui and GLFW, cleans up resources, and terminates the
+/// program.
+/// @param window Pointer to the GLFW window to be destroyed.
 void shutdownAndCleanUp(GLFWwindow *window) {
   ImGui_ImplOpenGL3_Shutdown();
   ImGui_ImplGlfw_Shutdown();

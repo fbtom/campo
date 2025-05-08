@@ -14,6 +14,8 @@
 
 namespace utils {
 
+/// @brief Callback function for handling keyboard input in the main window
+/// based on GLFW callback interface. Shall be used with glfwSetKeyCallback.
 void mainWindowCallback(GLFWwindow *win, int key, int scancode, int action,
                         int mods);
 
