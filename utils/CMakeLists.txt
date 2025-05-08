@@ -3,6 +3,8 @@ target_sources(utils PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/camera.cpp 
     ${CMAKE_CURRENT_SOURCE_DIR}/callback_handler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/frame.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/image_processor.hpp     
+    ${CMAKE_CURRENT_SOURCE_DIR}/filter_decorators.hpp 
 )
 
 target_link_libraries(utils PUBLIC gui nlohmann_json::nlohmann_json glfw) 

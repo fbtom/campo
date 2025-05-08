@@ -8,6 +8,9 @@
 ///
 
 #include "camera.hpp"
+#include "utils/filter_decorators.hpp"
+#include "utils/image_processor.hpp"
+#include <memory>
 
 namespace utils {
 
@@ -69,6 +72,18 @@ processCameraFrames(std::vector<utils::CameraData> &cameras) {
       camera.capture >> camera.frame;
 
       if (!camera.frame.empty()) {
+
+        std::unique_ptr<utils::ImageProcessor> image_processor =
+            std::make_unique<utils::BaseImageProcessor>();
+
+        image_processor = std::make_unique<utils::GrayscaleDecorator>(
+            std::move(image_processor));
+
+        image_processor =
+            std::make_unique<utils::BlurDecorator>(std::move(image_processor));
+
+        image_processor->Process(camera.frame);
+
         camera.texture_id = utils::cvMatToTexture(camera.frame);
         camera_streams.push_back({static_cast<ImTextureID>(camera.texture_id),
                                   camera.frame.cols, camera.frame.rows,
