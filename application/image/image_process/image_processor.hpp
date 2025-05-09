@@ -11,13 +11,13 @@
 
 #include "opencv2/opencv.hpp"
 
-namespace utils {
+namespace image {
 
 class ImageProcessor {
 public:
   virtual ~ImageProcessor() = default;
   /// @brief Processes the given image frame.
-  /// @param frame image to process.
+  /// @param frame image to Process.
   virtual void Process(cv::Mat &frame) = 0;
 };
 
@@ -28,4 +28,4 @@ public:
   }
 };
 
-} // namespace utils
+} // namespace image

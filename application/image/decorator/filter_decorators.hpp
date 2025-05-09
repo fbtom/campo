@@ -1,7 +1,7 @@
 ///
 /// @file filter_decorators.hpp
 /// @author fbtom
-/// @brief Defines decorator classes for applying image filters.
+/// @brief
 /// @date 2025-05-08
 ///
 /// @copyright Copyright (c) 2025
@@ -9,23 +9,30 @@
 
 #pragma once
 
-#include "image_processor.hpp"
+#include "application/image/image_process/image_processor.hpp"
 #include "opencv2/opencv.hpp"
 #include <memory>
 
-namespace utils {
+namespace image {
+namespace decorator {
 
 class FilterDecorator : public ImageProcessor {
 protected:
-  std::unique_ptr<ImageProcessor> wrapped_processor_;
+  std::unique_ptr<ImageProcessor> image_;
 
 public:
   FilterDecorator(std::unique_ptr<ImageProcessor> processor)
-      : wrapped_processor_(std::move(processor)) {}
+      : image_(std::move(processor)) {}
+
+  void SetImage(std::unique_ptr<ImageProcessor> processor) {
+    image_ = std::move(processor);
+  }
+
+  std::unique_ptr<ImageProcessor> ReleaseImage() { return std::move(image_); }
 
   void Process(cv::Mat &frame) override {
-    if (wrapped_processor_) {
-      wrapped_processor_->Process(frame);
+    if (image_) {
+      image_->Process(frame);
     }
   }
 };
@@ -37,7 +44,10 @@ public:
 
   void Process(cv::Mat &frame) override {
     FilterDecorator::Process(frame);
-    cv::cvtColor(frame, frame, cv::COLOR_BGR2GRAY);
+    const auto channel = frame.channels();
+    if (channel == 3 || channel == 4) {
+      cv::cvtColor(frame, frame, cv::COLOR_BGR2GRAY);
+    }
   }
 };
 
@@ -52,4 +62,5 @@ public:
   }
 };
 
-} // namespace utils
+} // namespace decorator
+} // namespace image

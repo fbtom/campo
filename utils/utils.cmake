@@ -17,7 +17,7 @@ set(OpenCVModules
 )
 
 function(target_open_cv target)
-    target_include_directories(${target} PRIVATE
+    target_include_directories(${target} INTERFACE
         ${OpenCV_SOURCE_DIR}/include
         ${OpenCV_BINARY_DIR}
         ${OPENCV_CONFIG_FILE_INCLUDE_DIR}
@@ -25,9 +25,9 @@ function(target_open_cv target)
     )
 
     foreach(module ${OpenCVModules})
-        target_include_directories(${target} PRIVATE
+        target_include_directories(${target} INTERFACE
             ${OPENCV_MODULE_opencv_${module}_LOCATION}/include
         )
-        target_link_libraries(${target} PRIVATE opencv_${module})
+        target_link_libraries(${target} INTERFACE opencv_${module})
     endforeach()
 endfunction()
