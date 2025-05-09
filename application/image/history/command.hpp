@@ -20,6 +20,5 @@ public:
   virtual void Execute() = 0;
   virtual void Undo() = 0;
 };
-
-} // namespace commands
-} // namespace utils
+} // namespace history
+} // namespace image
