@@ -19,7 +19,6 @@ namespace decorator {
 class FilterDecorator : public ImageProcessor {
   virtual void Decorate(cv::Mat &frame) = 0;
 
-protected:
   std::unique_ptr<ImageProcessor> image_processor_;
 
 public:
@@ -35,10 +34,6 @@ public:
 };
 
 class GrayscaleDecorator : public FilterDecorator {
-public:
-  GrayscaleDecorator(std::unique_ptr<ImageProcessor> processor)
-      : FilterDecorator(std::move(processor)) {}
-
   void Decorate(cv::Mat &frame) override {
     const auto channel = frame.channels();
     if (channel == 3 || channel == 4) {
@@ -47,16 +42,20 @@ public:
       cv::cvtColor(grayFrame, frame, cv::COLOR_GRAY2BGR);
     }
   }
+
+public:
+  GrayscaleDecorator(std::unique_ptr<ImageProcessor> processor)
+      : FilterDecorator(std::move(processor)) {}
 };
 
 class BlurDecorator : public FilterDecorator {
-public:
-  BlurDecorator(std::unique_ptr<ImageProcessor> processor)
-      : FilterDecorator(std::move(processor)) {}
-
   void Decorate(cv::Mat &frame) override {
     cv::GaussianBlur(frame, frame, cv::Size(5, 5), 0);
   }
+
+public:
+  BlurDecorator(std::unique_ptr<ImageProcessor> processor)
+      : FilterDecorator(std::move(processor)) {}
 };
 
 } // namespace decorator

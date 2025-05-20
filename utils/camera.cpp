@@ -9,7 +9,6 @@
 
 #include "utils/camera.hpp"
 #include "application/image/image_process/image_processor_manager.hpp"
-#include <memory>
 
 namespace utils {
 

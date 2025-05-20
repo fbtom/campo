@@ -66,9 +66,8 @@ void refreshCameraList(std::vector<CameraData> &container,
 /// @param cameras as a list of CameraData representing the cameras.
 /// @param processor_manager as a pointer to ImageProcessorManager.
 /// @return std::vector<gui::CameraStream> containing camera information.
-std::vector<gui::CameraStream>
-processCameraFrames(std::vector<utils::CameraData> &cameras,
-                    image::process::ImageProcessorManager *processor_manager =
-                        nullptr); // Corrected namespace
+std::vector<gui::CameraStream> processCameraFrames(
+    std::vector<utils::CameraData> &cameras,
+    image::process::ImageProcessorManager *processor_manager = nullptr);
 
 } // namespace utils

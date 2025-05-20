@@ -96,9 +96,9 @@ void renderUndoButton(image::history::CommandHistory &command_history,
                       float button_width) {
   if (!command_history.canUndo()) {
     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-    ImGui::Button("Undo", ImVec2(button_width, 0));
+    ImGui::Button(kButtonUndo, ImVec2(button_width, 0));
     ImGui::PopStyleVar();
-  } else if (ImGui::Button("Undo", ImVec2(button_width, 0))) {
+  } else if (ImGui::Button(kButtonUndo, ImVec2(button_width, 0))) {
     command_history.Undo();
   }
 }
@@ -107,9 +107,9 @@ void renderRedoButton(image::history::CommandHistory &command_history,
                       float button_width) {
   if (!command_history.canRedo()) {
     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-    ImGui::Button("Redo", ImVec2(button_width, 0));
+    ImGui::Button(kButtonRedo, ImVec2(button_width, 0));
     ImGui::PopStyleVar();
-  } else if (ImGui::Button("Redo", ImVec2(button_width, 0))) {
+  } else if (ImGui::Button(kButtonRedo, ImVec2(button_width, 0))) {
     command_history.Redo();
   }
 }
@@ -124,9 +124,9 @@ void renderEffectsMenu(utils::AppContext &app_context) {
     auto &image_processor_manager = *app_context.image_processor_manager_ptr;
 
     renderFilterButton<image::decorator::GrayscaleDecorator>(
-        "Apply Grayscale", image_processor_manager, command_history);
+        kButtonSetGrayscale, image_processor_manager, command_history);
     renderFilterButton<image::decorator::BlurDecorator>(
-        "Apply Blur", image_processor_manager, command_history);
+        kButtonSetBlur, image_processor_manager, command_history);
 
     ImGui::Separator();
 
@@ -152,7 +152,7 @@ void renderEffectsMenu(utils::AppContext &app_context) {
 void renderMenuBar(GLFWwindow *window, utils::AppContext &app_context,
                    gui::GridDisplay &grid_display) {
   if (ImGui::BeginMenuBar()) {
-    if (ImGui::BeginMenu("Campo")) {
+    if (ImGui::BeginMenu(kApplicationName)) {
       renderCampoMenu(window);
       ImGui::EndMenu();
     }
@@ -246,7 +246,7 @@ void renderGui(GLFWwindow *window, utils::AppContext &app_context,
   ImGui::SetNextWindowSize(main_window_size);
   ImGui::SetNextWindowPos(main_window_pos);
 
-  if (ImGui::Begin("Campo", NULL,
+  if (ImGui::Begin(kApplicationName, NULL,
                    ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar |
                        ImGuiWindowFlags_NoMove)) {
     renderLeftPanel(window, app_context, grid_display);
