@@ -9,6 +9,7 @@
 
 #pragma once
 
+#define GL_SILENCE_DEPRECATION
 // External headers
 #include "opencv2/opencv.hpp"
 #include <GLFW/glfw3.h>

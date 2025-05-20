@@ -7,7 +7,8 @@
 /// @copyright Copyright (c) 2025
 ///
 
-#include "camera.hpp"
+#include "utils/camera.hpp"
+#include "application/image/image_process/image_processor_manager.hpp"
 
 namespace utils {
 
@@ -60,7 +61,8 @@ void refreshCameraList(std::vector<CameraData> &container,
 }
 
 std::vector<gui::CameraStream>
-processCameraFrames(std::vector<utils::CameraData> &cameras) {
+processCameraFrames(std::vector<utils::CameraData> &cameras,
+                    image::process::ImageProcessorManager *processor_manager) {
   auto camera_streams = std::vector<gui::CameraStream>{};
   for (auto &camera : cameras) {
     if (camera.is_available) {
@@ -69,6 +71,10 @@ processCameraFrames(std::vector<utils::CameraData> &cameras) {
       camera.capture >> camera.frame;
 
       if (!camera.frame.empty()) {
+        if (processor_manager) {
+          processor_manager->processFrame(camera.frame);
+        }
+
         camera.texture_id = utils::cvMatToTexture(camera.frame);
         camera_streams.push_back({static_cast<ImTextureID>(camera.texture_id),
                                   camera.frame.cols, camera.frame.rows,

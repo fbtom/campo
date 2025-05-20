@@ -20,6 +20,7 @@
 #include "opencv2/opencv.hpp"
 #include <GLFW/glfw3.h>
 // Project headers
+#include "application/image/image_process/image_processor_manager.hpp"
 #include "gui/grid_display.hpp"
 #include "gui/gui_utils.hpp"
 #include "gui/menu.hpp"
@@ -49,6 +50,11 @@ int main() {
   app_context.current_id_ptr = &current_id;
   glfwSetWindowUserPointer(window, &app_context);
 
+  image::history::CommandHistory command_history;
+  image::process::ImageProcessorManager image_processor_manager;
+  app_context.command_history_ptr = &command_history;
+  app_context.image_processor_manager_ptr = &image_processor_manager;
+
   auto initial_camera_ids = utils::getCameraIDs();
   utils::refreshCameraList(cameras, initial_camera_ids);
   current_id =
@@ -60,7 +66,8 @@ int main() {
     glfwPollEvents();
 
     std::vector<gui::CameraStream> current_camera_streams{
-        utils::processCameraFrames(cameras)};
+        utils::processCameraFrames(cameras,
+                                   app_context.image_processor_manager_ptr)};
 
     grid_display.setCameraData(current_camera_streams);
 

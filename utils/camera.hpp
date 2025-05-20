@@ -21,10 +21,14 @@
 #include <imgui.h>
 
 // Project headers
+#include "application/image/history/command_history.hpp"
+#include "application/image/image_process/image_processor_manager.hpp"
 #include "gui/grid_display.hpp"
 #include "utils/conversions.hpp"
 
 namespace utils {
+
+struct CameraData;
 
 struct CameraData {
   int id;
@@ -37,6 +41,8 @@ struct CameraData {
 struct AppContext {
   std::vector<CameraData> *cameras_ptr;
   int *current_id_ptr;
+  image::history::CommandHistory *command_history_ptr;
+  image::process::ImageProcessorManager *image_processor_manager_ptr;
 };
 
 /// @brief Get a list of available camera IDs.
@@ -58,8 +64,10 @@ void refreshCameraList(std::vector<CameraData> &container,
 
 /// @brief Processes frames and generates a list of CameraStream.
 /// @param cameras as a list of CameraData representing the cameras.
+/// @param processor_manager as a pointer to ImageProcessorManager.
 /// @return std::vector<gui::CameraStream> containing camera information.
-std::vector<gui::CameraStream>
-processCameraFrames(std::vector<utils::CameraData> &cameras);
+std::vector<gui::CameraStream> processCameraFrames(
+    std::vector<utils::CameraData> &cameras,
+    image::process::ImageProcessorManager *processor_manager = nullptr);
 
 } // namespace utils
