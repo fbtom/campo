@@ -10,9 +10,9 @@
 #pragma once
 
 #include "application/image/decorator/filter_decorators.hpp"
+#include "application/image/filter/filter_command_receiver.hpp"
 #include "application/image/history/command.hpp"
 #include "application/image/image_process/image_processor.hpp"
-#include "application/image/image_process/image_processor_manager.hpp"
 #include <memory>
 #include <utility>
 
@@ -21,18 +21,18 @@ namespace filter {
 
 class FilterCommand : public history::Command {
 public:
-  FilterCommand(image::process::ImageProcessorManager *manager,
-                std::unique_ptr<decorator::FilterDecorator> filter)
-      : manager_(manager), filter_to_apply_(std::move(filter)),
-        applied_filter_raw_ptr_(nullptr) {}
+  FilterCommand(std::shared_ptr<FilterCommandReceiver> receiver,
+                std::unique_ptr<decorator::FilterDecorator> filter);
 
   void Execute() override;
-  void Undo() override;
+
+  std::shared_ptr<FilterCommandReceiver> GetReceiver() const {
+    return receiver_;
+  }
 
 private:
-  image::process::ImageProcessorManager *manager_;
+  std::shared_ptr<FilterCommandReceiver> receiver_;
   std::unique_ptr<decorator::FilterDecorator> filter_to_apply_;
-  ImageProcessor *applied_filter_raw_ptr_;
 };
 
 } // namespace filter

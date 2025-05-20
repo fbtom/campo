@@ -13,8 +13,8 @@
 #include "application/image/image_process/image_processor.hpp"
 #include "opencv2/opencv.hpp"
 #include <algorithm>
-#include <deque>
 #include <memory>
+#include <vector>
 
 namespace image {
 namespace process {
@@ -22,40 +22,37 @@ namespace process {
 class ImageProcessorManager {
 public:
   ImageProcessorManager()
-      : processor_(std::make_unique<image::BaseImageProcessor>()) {}
+      : base_processor_(std::make_unique<image::BaseImageProcessor>()) {}
 
   void processFrame(cv::Mat &frame) {
-    if (processor_) {
-      processor_->Process(frame);
+    for (auto &filter : filters_) {
+      if (filter) {
+        filter->Process(frame);
+      }
     }
   }
 
-  void SetProcessor(std::unique_ptr<ImageProcessor> processor) {
-    processor_ = std::move(processor);
+  void AddFilter(std::unique_ptr<decorator::FilterDecorator> filter) {
+    if (filter) {
+      filters_.push_back(std::move(filter));
+    }
   }
 
-  std::unique_ptr<ImageProcessor> ReleaseProcessor() {
-    return std::move(processor_);
-  }
-
-  std::unique_ptr<ImageProcessor> UndoLast() {
-    if (!processor_)
+  std::unique_ptr<decorator::FilterDecorator> Undo() {
+    if (filters_.empty()) {
       return nullptr;
-
-    decorator::FilterDecorator *outer_decorator =
-        dynamic_cast<decorator::FilterDecorator *>(processor_.get());
-    if (outer_decorator) {
-      std::unique_ptr<ImageProcessor> previous_head =
-          outer_decorator->ReleaseImage();
-      std::unique_ptr<ImageProcessor> removed_filter = std::move(processor_);
-      processor_ = std::move(previous_head);
-      return removed_filter;
     }
-    return nullptr;
+
+    std::unique_ptr<decorator::FilterDecorator> removed_filter =
+        std::move(filters_.back());
+    filters_.pop_back();
+
+    return removed_filter;
   }
 
 private:
-  std::unique_ptr<ImageProcessor> processor_;
+  std::unique_ptr<ImageProcessor> base_processor_;
+  std::vector<std::unique_ptr<decorator::FilterDecorator>> filters_;
 };
 
 } // namespace process

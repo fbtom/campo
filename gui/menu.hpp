@@ -22,9 +22,11 @@
 #include <imgui.h>
 
 #include "application/image/decorator/filter_decorators.hpp"
+#include "application/image/filter/add_filter_command.hpp"
 #include "application/image/filter/filter_command.hpp"
+#include "application/image/filter/filter_command_receiver.hpp"
+#include "application/image/filter/remove_filter_command.hpp"
 #include "application/image/history/command_history.hpp"
-#include "application/image/history/remove_top_filter_command.hpp"
 #include "application/image/image_process/image_processor_manager.hpp"
 
 #include <memory>
@@ -73,39 +75,42 @@ void renderFilterButton(
     image::process::ImageProcessorManager &image_processor_manager,
     image::history::CommandHistory &command_history) {
   if (ImGui::Button(label, ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
-    auto filter = std::make_unique<FilterType>(nullptr);
-    auto command = std::make_unique<image::filter::FilterCommand>(
-        &image_processor_manager, std::move(filter));
-    command_history.executeCommand(std::move(command));
-  }
-}
-
-void renderRemoveTopEffectButton(
-    image::process::ImageProcessorManager &image_processor_manager,
-    image::history::CommandHistory &command_history) {
-  if (ImGui::Button("Remove Top Effect",
-                    ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
-    auto command = std::make_unique<image::history::RemoveTopFilterCommand>(
+    auto receiver = std::make_shared<image::filter::FilterCommandReceiver>(
         &image_processor_manager);
-    command_history.executeCommand(std::move(command));
+
+    auto filter = std::make_unique<FilterType>(
+        std::make_unique<image::BaseImageProcessor>());
+
+    auto do_command = std::make_unique<image::filter::FilterCommand>(
+        receiver, std::move(filter));
+
+    auto undo_command =
+        std::make_unique<image::filter::RemoveFilterCommand>(receiver);
+
+    command_history.executeCommand(std::move(do_command),
+                                   std::move(undo_command));
   }
 }
 
 void renderUndoButton(image::history::CommandHistory &command_history,
                       float button_width) {
-  if (ImGui::Button("Undo", ImVec2(button_width, 0))) {
-    if (command_history.canUndo()) {
-      command_history.Undo();
-    }
+  if (!command_history.canUndo()) {
+    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+    ImGui::Button("Undo", ImVec2(button_width, 0));
+    ImGui::PopStyleVar();
+  } else if (ImGui::Button("Undo", ImVec2(button_width, 0))) {
+    command_history.Undo();
   }
 }
 
 void renderRedoButton(image::history::CommandHistory &command_history,
                       float button_width) {
-  if (ImGui::Button("Redo", ImVec2(button_width, 0))) {
-    if (command_history.canRedo()) {
-      command_history.redo();
-    }
+  if (!command_history.canRedo()) {
+    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+    ImGui::Button("Redo", ImVec2(button_width, 0));
+    ImGui::PopStyleVar();
+  } else if (ImGui::Button("Redo", ImVec2(button_width, 0))) {
+    command_history.Redo();
   }
 }
 
@@ -122,8 +127,6 @@ void renderEffectsMenu(utils::AppContext &app_context) {
         "Apply Grayscale", image_processor_manager, command_history);
     renderFilterButton<image::decorator::BlurDecorator>(
         "Apply Blur", image_processor_manager, command_history);
-
-    renderRemoveTopEffectButton(image_processor_manager, command_history);
 
     ImGui::Separator();
 

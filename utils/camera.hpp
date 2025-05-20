@@ -26,10 +26,6 @@
 #include "gui/grid_display.hpp"
 #include "utils/conversions.hpp"
 
-namespace image {
-class ImageProcessorManager;
-}
-
 namespace utils {
 
 struct CameraData;
