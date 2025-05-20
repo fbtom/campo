@@ -42,7 +42,9 @@ public:
   void Decorate(cv::Mat &frame) override {
     const auto channel = frame.channels();
     if (channel == 3 || channel == 4) {
-      cv::cvtColor(frame, frame, cv::COLOR_BGR2GRAY);
+      cv::Mat grayFrame{};
+      cv::cvtColor(frame, grayFrame, cv::COLOR_BGR2GRAY);
+      cv::cvtColor(grayFrame, frame, cv::COLOR_GRAY2BGR);
     }
   }
 };
