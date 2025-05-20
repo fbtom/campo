@@ -20,15 +20,15 @@ class FilterDecorator : public ImageProcessor {
   virtual void Decorate(cv::Mat &frame) = 0;
 
 protected:
-  std::unique_ptr<ImageProcessor> image_;
+  std::unique_ptr<ImageProcessor> image_processor_;
 
 public:
   FilterDecorator(std::unique_ptr<ImageProcessor> processor)
-      : image_(std::move(processor)) {}
+      : image_processor_(std::move(processor)) {}
 
   void Process(cv::Mat &frame) override {
-    if (image_) {
-      image_->Process(frame);
+    if (image_processor_) {
+      image_processor_->Process(frame);
     }
     Decorate(frame);
   }
