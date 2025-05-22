@@ -23,7 +23,7 @@
 // Project headers
 #include "application/image/history/command_history.hpp"
 #include "application/image/image_process/image_processor_manager.hpp"
-#include "gui/grid_display.hpp"
+#include "common/camera_stream.hpp"
 #include "utils/conversions.hpp"
 
 namespace utils {
@@ -65,9 +65,12 @@ void refreshCameraList(std::vector<CameraData> &container,
 /// @brief Processes frames and generates a list of CameraStream.
 /// @param cameras as a list of CameraData representing the cameras.
 /// @param processor_manager as a pointer to ImageProcessorManager.
-/// @return std::vector<gui::CameraStream> containing camera information.
-std::vector<gui::CameraStream> processCameraFrames(
+/// @param selected_camera_id Optional ID of the selected camera to process
+/// (when in single camera view).
+/// @return std::vector<common::CameraStream> containing camera information.
+std::vector<common::CameraStream> processCameraFrames(
     std::vector<utils::CameraData> &cameras,
-    image::process::ImageProcessorManager *processor_manager = nullptr);
+    image::process::ImageProcessorManager *processor_manager = nullptr,
+    std::optional<int> selected_camera_id = std::nullopt);
 
 } // namespace utils
