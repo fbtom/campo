@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "application/camera_view/camera_view_adapter.hpp"
 #include "grid_display.hpp"
 #include "shortcuts.hpp"
 #include "utils/callback_handler.hpp"
@@ -51,7 +52,7 @@ void renderCameraMenu(utils::AppContext &app_context,
           utils::getValidCameraID(camera_ids, utils::loadCameraID());
     } else {
       app_context.cameras_ptr->clear();
-      grid_display.setCameraData({});
+      grid_display.SetCameraData({});
       *app_context.current_id_ptr = -1;
     }
   }
@@ -203,6 +204,10 @@ void renderLeftPanel(GLFWwindow *window, utils::AppContext &app_context,
 
   renderEffectsMenu(app_context);
 
+  ImGui::SetCursorPosY(ImGui::GetWindowHeight() - 32);
+  ImGui::Separator();
+  grid_display.RenderReturnButton();
+
   ImGui::EndChild();
 }
 
@@ -213,7 +218,7 @@ void renderLeftPanel(GLFWwindow *window, utils::AppContext &app_context,
 void renderRightPanel(gui::GridDisplay &grid_display, int &current_id) {
   ImGui::BeginChild("Right Panel", ImVec2(0, 0), true);
 
-  std::optional<int> choosen_camera = grid_display.renderGrid();
+  std::optional<int> choosen_camera = grid_display.RenderGrid();
   if (choosen_camera.has_value()) {
     current_id = choosen_camera.value();
   }

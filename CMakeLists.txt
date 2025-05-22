@@ -32,9 +32,9 @@ add_executable(${PROJECT_NAME}
   main.cpp
 )
 
-add_subdirectory(gui)
 add_subdirectory(utils)
 add_subdirectory(application)
+add_subdirectory(common)
 
 target_open_cv(${PROJECT_NAME}) 
 
@@ -45,6 +45,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     nlohmann_json::nlohmann_json 
     gui 
     utils
+    common
     image_decorator
     image_filter
     image_history
