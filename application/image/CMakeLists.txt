@@ -1,0 +1,4 @@
+add_subdirectory(decorator)
+add_subdirectory(filter)
+add_subdirectory(history)
+add_subdirectory(image_process)

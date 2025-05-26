@@ -21,6 +21,16 @@
 #include <GLFW/glfw3.h>
 #include <imgui.h>
 
+#include "application/image/decorator/filter_decorators.hpp"
+#include "application/image/filter/add_filter_command.hpp"
+#include "application/image/filter/filter_command.hpp"
+#include "application/image/filter/filter_command_receiver.hpp"
+#include "application/image/filter/remove_filter_command.hpp"
+#include "application/image/history/command_history.hpp"
+#include "application/image/image_process/image_processor_manager.hpp"
+
+#include <memory>
+
 namespace gui {
 
 namespace {
@@ -59,6 +69,79 @@ void cameraDetails(const utils::CameraData &camera) {
   ImGui::Text("Focus: %.2f", camera.capture.get(cv::CAP_PROP_FOCUS));
 }
 
+template <typename FilterType>
+void renderFilterButton(
+    const char *label,
+    image::process::ImageProcessorManager &image_processor_manager,
+    image::history::CommandHistory &command_history) {
+  if (ImGui::Button(label, ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+    auto receiver = std::make_shared<image::filter::FilterCommandReceiver>(
+        &image_processor_manager);
+
+    auto filter = std::make_unique<FilterType>(
+        std::make_unique<image::BaseImageProcessor>());
+
+    auto do_command = std::make_unique<image::filter::FilterCommand>(
+        receiver, std::move(filter));
+
+    auto undo_command =
+        std::make_unique<image::filter::RemoveFilterCommand>(receiver);
+
+    command_history.executeCommand(std::move(do_command),
+                                   std::move(undo_command));
+  }
+}
+
+void renderUndoButton(image::history::CommandHistory &command_history,
+                      float button_width) {
+  if (!command_history.canUndo()) {
+    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+    ImGui::Button(kButtonUndo, ImVec2(button_width, 0));
+    ImGui::PopStyleVar();
+  } else if (ImGui::Button(kButtonUndo, ImVec2(button_width, 0))) {
+    command_history.Undo();
+  }
+}
+
+void renderRedoButton(image::history::CommandHistory &command_history,
+                      float button_width) {
+  if (!command_history.canRedo()) {
+    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+    ImGui::Button(kButtonRedo, ImVec2(button_width, 0));
+    ImGui::PopStyleVar();
+  } else if (ImGui::Button(kButtonRedo, ImVec2(button_width, 0))) {
+    command_history.Redo();
+  }
+}
+
+void renderEffectsMenu(utils::AppContext &app_context) {
+  ImGui::Text("Effects");
+  ImGui::Separator();
+
+  if (app_context.command_history_ptr &&
+      app_context.image_processor_manager_ptr) {
+    auto &command_history = *app_context.command_history_ptr;
+    auto &image_processor_manager = *app_context.image_processor_manager_ptr;
+
+    renderFilterButton<image::decorator::GrayscaleDecorator>(
+        kButtonSetGrayscale, image_processor_manager, command_history);
+    renderFilterButton<image::decorator::BlurDecorator>(
+        kButtonSetBlur, image_processor_manager, command_history);
+
+    ImGui::Separator();
+
+    float half_button_width = ImGui::GetContentRegionAvail().x * 0.5f -
+                              ImGui::GetStyle().ItemSpacing.x * 0.5f;
+    if (half_button_width < 0.0f) {
+      half_button_width = 0.0f;
+    }
+
+    renderUndoButton(command_history, half_button_width);
+    ImGui::SameLine();
+    renderRedoButton(command_history, half_button_width);
+  }
+}
+
 } // namespace
 /// @brief Renders the menu bar with options for exiting the application and
 /// updating the camera list.
@@ -69,7 +152,7 @@ void cameraDetails(const utils::CameraData &camera) {
 void renderMenuBar(GLFWwindow *window, utils::AppContext &app_context,
                    gui::GridDisplay &grid_display) {
   if (ImGui::BeginMenuBar()) {
-    if (ImGui::BeginMenu("Campo")) {
+    if (ImGui::BeginMenu(kApplicationName)) {
       renderCampoMenu(window);
       ImGui::EndMenu();
     }
@@ -118,6 +201,8 @@ void renderLeftPanel(GLFWwindow *window, utils::AppContext &app_context,
     ImGui::Text("No cameras available.");
   }
 
+  renderEffectsMenu(app_context);
+
   ImGui::EndChild();
 }
 
@@ -136,14 +221,12 @@ void renderRightPanel(gui::GridDisplay &grid_display, int &current_id) {
   ImGui::EndChild();
 }
 
+/// @brief Initializes a new frame for rendering the GUI.
 void initNewFrame() {
   ImGui_ImplOpenGL3_NewFrame();
   ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
 }
-
-/// @brief Initializes a new frame for rendering the GUI.
-void initNewFrame();
 
 /// @brief Renders the entire GUI, including both left and right panels.
 /// @param window Pointer to the GLFW window.
@@ -163,7 +246,7 @@ void renderGui(GLFWwindow *window, utils::AppContext &app_context,
   ImGui::SetNextWindowSize(main_window_size);
   ImGui::SetNextWindowPos(main_window_pos);
 
-  if (ImGui::Begin("Campo", NULL,
+  if (ImGui::Begin(kApplicationName, NULL,
                    ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar |
                        ImGuiWindowFlags_NoMove)) {
     renderLeftPanel(window, app_context, grid_display);
