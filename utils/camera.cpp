@@ -60,25 +60,56 @@ void refreshCameraList(std::vector<CameraData> &container,
   }
 }
 
-std::vector<gui::CameraStream>
+std::vector<common::CameraStream>
 processCameraFrames(std::vector<utils::CameraData> &cameras,
-                    image::process::ImageProcessorManager *processor_manager) {
-  auto camera_streams = std::vector<gui::CameraStream>{};
-  for (auto &camera : cameras) {
-    if (camera.is_available) {
-      camera.capture.set(cv::CAP_PROP_FPS, 60);
+                    image::process::ImageProcessorManager *processor_manager,
+                    std::optional<int> selected_camera_id) {
+  auto camera_streams = std::vector<common::CameraStream>{};
 
-      camera.capture >> camera.frame;
+  // When in single camera view, only process the selected camera
+  if (selected_camera_id.has_value()) {
+    for (auto &camera : cameras) {
+      if (camera.is_available && camera.id == selected_camera_id.value()) {
+        camera.capture.set(cv::CAP_PROP_FPS, 60);
+        camera.capture >> camera.frame;
 
-      if (!camera.frame.empty()) {
-        if (processor_manager) {
-          processor_manager->processFrame(camera.frame);
+        if (!camera.frame.empty()) {
+          if (processor_manager) {
+            processor_manager->processFrame(camera.frame);
+          }
+
+          camera.texture_id = utils::cvMatToTexture(camera.frame);
+          camera_streams.push_back({static_cast<ImTextureID>(camera.texture_id),
+                                    camera.frame.cols, camera.frame.rows,
+                                    camera.id});
         }
+        break; 
+      } else {
+        // For non-selected cameras, add the last frame but don't update it
+        if (camera.is_available && !camera.frame.empty()) {
+          camera_streams.push_back({static_cast<ImTextureID>(camera.texture_id),
+                                    camera.frame.cols, camera.frame.rows,
+                                    camera.id});
+        }
+      }
+    }
+  } else {
+    // Process all cameras in grid view
+    for (auto &camera : cameras) {
+      if (camera.is_available) {
+        camera.capture.set(cv::CAP_PROP_FPS, 60);
+        camera.capture >> camera.frame;
 
-        camera.texture_id = utils::cvMatToTexture(camera.frame);
-        camera_streams.push_back({static_cast<ImTextureID>(camera.texture_id),
-                                  camera.frame.cols, camera.frame.rows,
-                                  camera.id});
+        if (!camera.frame.empty()) {
+          if (processor_manager) {
+            processor_manager->processFrame(camera.frame);
+          }
+
+          camera.texture_id = utils::cvMatToTexture(camera.frame);
+          camera_streams.push_back({static_cast<ImTextureID>(camera.texture_id),
+                                    camera.frame.cols, camera.frame.rows,
+                                    camera.id});
+        }
       }
     }
   }

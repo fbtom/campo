@@ -20,10 +20,11 @@
 #include "opencv2/opencv.hpp"
 #include <GLFW/glfw3.h>
 // Project headers
+#include "application/gui/grid_display.hpp"
+#include "application/gui/gui_utils.hpp"
+#include "application/gui/menu.hpp"
 #include "application/image/image_process/image_processor_manager.hpp"
-#include "gui/grid_display.hpp"
-#include "gui/gui_utils.hpp"
-#include "gui/menu.hpp"
+#include "common/camera_stream.hpp"
 #include "utils/callback_handler.hpp"
 #include "utils/camera.hpp"
 #include "utils/conversions.hpp"
@@ -65,11 +66,15 @@ int main() {
   while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();
 
-    std::vector<gui::CameraStream> current_camera_streams{
-        utils::processCameraFrames(cameras,
-                                   app_context.image_processor_manager_ptr)};
+    std::optional<int> selected_camera =
+        grid_display.IsGridView() ? std::nullopt
+                                  : grid_display.GetSelectedCameraId();
 
-    grid_display.setCameraData(current_camera_streams);
+    std::vector<common::CameraStream> current_camera_streams{
+        utils::processCameraFrames(
+            cameras, app_context.image_processor_manager_ptr, selected_camera)};
+
+    grid_display.SetCameraData(current_camera_streams);
 
     renderGui(window, app_context, grid_display);
 
