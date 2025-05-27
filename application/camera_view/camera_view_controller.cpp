@@ -26,13 +26,11 @@ std::optional<int> CameraViewController::RenderView() {
 
   if (is_grid_view_) {
     grid_view_.Render([this](int camera_index) {
-      // When a camera is selected in grid view, switch to single view
       single_view_.SetSelectedCamera(camera_index);
       is_grid_view_ = false;
     });
     return std::nullopt;
   } else {
-    // Render single camera view
     return single_view_.Render(available_region_size);
   }
 }
@@ -44,7 +42,7 @@ bool CameraViewController::RenderReturnButton() {
     button_clicked = ImGui::Button("Return to Grid View", ImVec2(-1, 0));
     if (button_clicked) {
       is_grid_view_ = true;
-      single_view_.SetSelectedCamera(-1); // Clear selection
+      single_view_.SetSelectedCamera(-1); 
     }
   }
 

@@ -83,7 +83,7 @@ processCameraFrames(std::vector<utils::CameraData> &cameras,
                                     camera.frame.cols, camera.frame.rows,
                                     camera.id});
         }
-        break; // Only process the selected camera
+        break; 
       } else {
         // For non-selected cameras, add the last frame but don't update it
         if (camera.is_available && !camera.frame.empty()) {

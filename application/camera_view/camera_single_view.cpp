@@ -20,7 +20,6 @@ void CameraSingleView::SetCameraData(
   camera_streams_ = streams;
   actual_camera_count_ = streams.size();
 
-  // If the selected camera no longer exists, reset selection
   if (selected_camera_index_.has_value() &&
       selected_camera_index_.value() >= actual_camera_count_) {
     selected_camera_index_ = std::nullopt;
@@ -39,7 +38,6 @@ std::optional<int>
 CameraSingleView::Render(const ImVec2 &available_region_size) {
   if (!selected_camera_index_.has_value() ||
       selected_camera_index_.value() >= actual_camera_count_) {
-    // If invalid camera index, return null
     return std::nullopt;
   }
 

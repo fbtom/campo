@@ -66,7 +66,6 @@ int main() {
   while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();
 
-    // Only update the selected camera when in single camera view
     std::optional<int> selected_camera =
         grid_display.IsGridView() ? std::nullopt
                                   : grid_display.GetSelectedCameraId();

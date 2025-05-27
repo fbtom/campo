@@ -21,7 +21,7 @@ std::vector<common::CameraStream> CameraViewAdapter::ConvertStreamFormat(
 
   for (const auto &old_stream : old_streams) {
     new_streams.push_back(
-        {old_stream.texture_id, // Using common field names now
+        {old_stream.texture_id,
          old_stream.width, old_stream.height, old_stream.original_id});
   }
 

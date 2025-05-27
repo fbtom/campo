@@ -9,6 +9,7 @@
 
 #include "camera_grid_view.hpp"
 #include <algorithm>
+#include <string>
 
 namespace application {
 namespace camera_view {

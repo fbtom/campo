@@ -21,8 +21,6 @@
 
 namespace gui {
 
-// CameraStream is now defined in common/camera_stream.hpp
-
 class GridDisplay {
 private:
   application::camera_view::CameraViewAdapter adapter_;

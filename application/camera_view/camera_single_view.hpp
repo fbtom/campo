@@ -17,7 +17,6 @@
 namespace application {
 namespace camera_view {
 
-/// @brief Handles rendering a single camera in fullscreen mode
 class CameraSingleView {
 private:
   std::vector<common::CameraStream> camera_streams_;
