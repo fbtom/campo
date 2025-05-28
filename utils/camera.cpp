@@ -52,17 +52,17 @@ void refreshCameraList(std::vector<CameraData> &container,
 
     if (camera_data.capture.isOpened()) {
       camera_data.is_available = true;
+      camera_data.processor_manager = std::make_unique<image::process::ImageProcessorManager>();
     } else {
       camera_data.capture.release();
       camera_data.is_available = false;
     }
-    container.emplace_back(camera_data);
+    container.emplace_back(std::move(camera_data));
   }
 }
 
 std::vector<common::CameraStream>
 processCameraFrames(std::vector<utils::CameraData> &cameras,
-                    image::process::ImageProcessorManager *processor_manager,
                     std::optional<int> selected_camera_id) {
   auto camera_streams = std::vector<common::CameraStream>{};
 
@@ -74,8 +74,8 @@ processCameraFrames(std::vector<utils::CameraData> &cameras,
         camera.capture >> camera.frame;
 
         if (!camera.frame.empty()) {
-          if (processor_manager) {
-            processor_manager->processFrame(camera.frame);
+          if (camera.processor_manager) {
+            camera.processor_manager->processFrame(camera.frame);
           }
 
           camera.texture_id = utils::cvMatToTexture(camera.frame);
@@ -101,8 +101,8 @@ processCameraFrames(std::vector<utils::CameraData> &cameras,
         camera.capture >> camera.frame;
 
         if (!camera.frame.empty()) {
-          if (processor_manager) {
-            processor_manager->processFrame(camera.frame);
+          if (camera.processor_manager) {
+            camera.processor_manager->processFrame(camera.frame);
           }
 
           camera.texture_id = utils::cvMatToTexture(camera.frame);

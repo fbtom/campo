@@ -43,7 +43,7 @@ void renderCampoMenu(GLFWwindow *window) {
 }
 
 void renderCameraMenu(utils::AppContext &app_context,
-                      gui::GridDisplay &grid_display) {
+                      GridDisplay &grid_display) {
   if (ImGui::MenuItem("Update list", kCtrlR)) {
     auto camera_ids = utils::getCameraIDs();
     if (!camera_ids.empty()) {
@@ -115,19 +115,69 @@ void renderRedoButton(image::history::CommandHistory &command_history,
   }
 }
 
-void renderEffectsMenu(utils::AppContext &app_context) {
+void renderEffectsMenu(utils::AppContext &app_context, bool is_grid_view) {
+  if (is_grid_view) {
+    return;
+  }
+  
   ImGui::Text("Effects");
   ImGui::Separator();
 
-  if (app_context.command_history_ptr &&
-      app_context.image_processor_manager_ptr) {
+  if (app_context.command_history_ptr) {
     auto &command_history = *app_context.command_history_ptr;
-    auto &image_processor_manager = *app_context.image_processor_manager_ptr;
-
-    renderFilterButton<image::decorator::GrayscaleDecorator>(
-        kButtonSetGrayscale, image_processor_manager, command_history);
-    renderFilterButton<image::decorator::BlurDecorator>(
-        kButtonSetBlur, image_processor_manager, command_history);
+    
+    std::optional<int> selected_camera_id;
+    
+    if (app_context.cameras_ptr && !app_context.cameras_ptr->empty()) {
+      if (app_context.current_id_ptr && *app_context.current_id_ptr >= 0) {
+        selected_camera_id = *app_context.current_id_ptr;
+      }
+      
+      if (selected_camera_id.has_value()) {
+        int target_camera_id = selected_camera_id.value();
+        
+        for (auto &camera : *app_context.cameras_ptr) {
+          if (camera.id == target_camera_id && camera.processor_manager) {
+            ImGui::Text("Applying effects to Camera %d", camera.id);
+            
+            ImGui::Text("Add effects:");
+            renderFilterButton<image::decorator::GrayscaleDecorator>(
+                kButtonSetGrayscale, *camera.processor_manager, command_history);
+            renderFilterButton<image::decorator::BlurDecorator>(
+                kButtonSetBlur, *camera.processor_manager, command_history);
+            
+            if (camera.processor_manager->HasActiveFilters()) {
+              ImGui::Separator();
+              ImGui::Text("Applied effects:");
+              
+              auto filter_names = camera.processor_manager->GetActiveFilters();
+              for (size_t i = 0; i < filter_names.size(); i++) {
+                ImGui::BulletText("%s", filter_names[i].c_str());
+              }
+            }
+            break;
+          }
+        }
+      }
+    } else if (app_context.image_processor_manager_ptr) {
+      auto &image_processor_manager = *app_context.image_processor_manager_ptr;
+      
+      ImGui::Text("Add effects:");
+      renderFilterButton<image::decorator::GrayscaleDecorator>(
+          kButtonSetGrayscale, image_processor_manager, command_history);
+      renderFilterButton<image::decorator::BlurDecorator>(
+          kButtonSetBlur, image_processor_manager, command_history);
+      
+      if (image_processor_manager.HasActiveFilters()) {
+        ImGui::Separator();
+        ImGui::Text("Applied effects:");
+        
+        auto filter_names = image_processor_manager.GetActiveFilters();
+        for (size_t i = 0; i < filter_names.size(); i++) {
+          ImGui::BulletText("%s", filter_names[i].c_str());
+        }
+      }
+    }
 
     ImGui::Separator();
 
@@ -151,7 +201,7 @@ void renderEffectsMenu(utils::AppContext &app_context) {
 /// information.
 /// @param grid_display Grid display for rendering camera data.
 void renderMenuBar(GLFWwindow *window, utils::AppContext &app_context,
-                   gui::GridDisplay &grid_display) {
+                   GridDisplay &grid_display) {
   if (ImGui::BeginMenuBar()) {
     if (ImGui::BeginMenu(kApplicationName)) {
       renderCampoMenu(window);
@@ -187,7 +237,7 @@ void renderCameraDetails(const std::vector<utils::CameraData> &cameras) {
 /// information.
 /// @param grid_display Grid display for rendering camera data.
 void renderLeftPanel(GLFWwindow *window, utils::AppContext &app_context,
-                     gui::GridDisplay &grid_display) {
+                     GridDisplay &grid_display) {
   ImGui::BeginChild("Left Panel",
                     ImVec2(ImGui::GetContentRegionAvail().x * 0.25f, 0), true,
                     ImGuiWindowFlags_MenuBar);
@@ -202,7 +252,7 @@ void renderLeftPanel(GLFWwindow *window, utils::AppContext &app_context,
     ImGui::Text("No cameras available.");
   }
 
-  renderEffectsMenu(app_context);
+  renderEffectsMenu(app_context, grid_display.IsGridView());
 
   ImGui::SetCursorPosY(ImGui::GetWindowHeight() - 32);
   ImGui::Separator();
@@ -215,7 +265,7 @@ void renderLeftPanel(GLFWwindow *window, utils::AppContext &app_context,
 /// display.
 /// @param grid_display Grid display for rendering camera data.
 /// @param current_id Reference to the current camera ID.
-void renderRightPanel(gui::GridDisplay &grid_display, int &current_id) {
+void renderRightPanel(GridDisplay &grid_display, int &current_id) {
   ImGui::BeginChild("Right Panel", ImVec2(0, 0), true);
 
   std::optional<int> choosen_camera = grid_display.RenderGrid();
@@ -239,7 +289,7 @@ void initNewFrame() {
 /// information.
 /// @param grid_display Grid display for rendering camera data.
 void renderGui(GLFWwindow *window, utils::AppContext &app_context,
-               gui::GridDisplay &grid_display) {
+               GridDisplay &grid_display) {
   initNewFrame();
 
   utils::Frame frame{};

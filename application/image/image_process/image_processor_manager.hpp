@@ -49,6 +49,20 @@ public:
 
     return removed_filter;
   }
+  
+  std::vector<std::string> GetActiveFilters() const {
+    std::vector<std::string> filter_names;
+    for (const auto& filter : filters_) {
+      if (filter) {
+        filter_names.push_back(filter->GetFilterName());
+      }
+    }
+    return filter_names;
+  }
+  
+  bool HasActiveFilters() const {
+    return !filters_.empty();
+  }
 
 private:
   std::unique_ptr<ImageProcessor> base_processor_;

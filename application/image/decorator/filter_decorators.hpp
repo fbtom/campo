@@ -31,6 +31,8 @@ public:
     }
     Decorate(frame);
   }
+  
+  virtual std::string GetFilterName() const = 0;
 };
 
 class GrayscaleDecorator : public FilterDecorator {
@@ -46,6 +48,10 @@ class GrayscaleDecorator : public FilterDecorator {
 public:
   GrayscaleDecorator(std::unique_ptr<ImageProcessor> processor)
       : FilterDecorator(std::move(processor)) {}
+      
+  std::string GetFilterName() const override {
+    return "Grayscale";
+  }
 };
 
 class BlurDecorator : public FilterDecorator {
@@ -56,6 +62,10 @@ class BlurDecorator : public FilterDecorator {
 public:
   BlurDecorator(std::unique_ptr<ImageProcessor> processor)
       : FilterDecorator(std::move(processor)) {}
+      
+  std::string GetFilterName() const override {
+    return "Blur";
+  }
 };
 
 } // namespace decorator
