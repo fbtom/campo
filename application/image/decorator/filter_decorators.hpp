@@ -31,7 +31,7 @@ public:
     }
     Decorate(frame);
   }
-  
+
   virtual std::string GetFilterName() const = 0;
 };
 
@@ -48,24 +48,36 @@ class GrayscaleDecorator : public FilterDecorator {
 public:
   GrayscaleDecorator(std::unique_ptr<ImageProcessor> processor)
       : FilterDecorator(std::move(processor)) {}
-      
-  std::string GetFilterName() const override {
-    return "Grayscale";
-  }
+
+  std::string GetFilterName() const override { return "Grayscale"; }
 };
 
 class BlurDecorator : public FilterDecorator {
+private:
+  int blur_intensity_;
+
   void Decorate(cv::Mat &frame) override {
-    cv::GaussianBlur(frame, frame, cv::Size(5, 5), 0);
+
+    int kernel_size = std::max(1, blur_intensity_);
+    if (kernel_size % 2 == 0) {
+      kernel_size += 1;
+    }
+    cv::GaussianBlur(frame, frame, cv::Size(kernel_size, kernel_size), 0);
   }
 
 public:
-  BlurDecorator(std::unique_ptr<ImageProcessor> processor)
-      : FilterDecorator(std::move(processor)) {}
-      
-  std::string GetFilterName() const override {
-    return "Blur";
+  BlurDecorator(std::unique_ptr<ImageProcessor> processor,
+                int blur_intensity = 1)
+      : FilterDecorator(std::move(processor)), blur_intensity_(blur_intensity) {
   }
+
+  std::string GetFilterName() const override {
+    return "Blur intensity: " + std::to_string(blur_intensity_) + ")";
+  }
+
+  void SetBlurIntensity(int intensity) { blur_intensity_ = intensity; }
+
+  int GetBlurIntensity() const { return blur_intensity_; }
 };
 
 } // namespace decorator

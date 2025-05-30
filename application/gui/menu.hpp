@@ -115,6 +115,37 @@ void renderRedoButton(image::history::CommandHistory &command_history,
   }
 }
 
+void renderBlurWithSlider(
+    image::process::ImageProcessorManager &image_processor_manager,
+    image::history::CommandHistory &command_history,
+    int &blur_intensity) {
+  
+  ImGui::Text("Blur Intensity:");
+  if (ImGui::SliderInt("##BlurIntensity", &blur_intensity, 1, 11)) {
+    // Ensure odd numbers only - required for OpenCV kernel size
+    if (blur_intensity % 2 == 0) {
+      blur_intensity += 1;
+    }
+  }
+  
+  if (ImGui::Button("Apply Blur", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+    auto receiver = std::make_shared<image::filter::FilterCommandReceiver>(
+        &image_processor_manager);
+
+    auto filter = std::make_unique<image::decorator::BlurDecorator>(
+        std::make_unique<image::BaseImageProcessor>(), blur_intensity);
+
+    auto do_command = std::make_unique<image::filter::FilterCommand>(
+        receiver, std::move(filter));
+
+    auto undo_command =
+        std::make_unique<image::filter::RemoveFilterCommand>(receiver);
+
+    command_history.executeCommand(std::move(do_command),
+                                   std::move(undo_command));
+  }
+}
+
 void renderEffectsMenu(utils::AppContext &app_context, bool is_grid_view) {
   if (is_grid_view) {
     return;
@@ -143,8 +174,7 @@ void renderEffectsMenu(utils::AppContext &app_context, bool is_grid_view) {
             ImGui::Text("Add effects:");
             renderFilterButton<image::decorator::GrayscaleDecorator>(
                 kButtonSetGrayscale, *camera.processor_manager, command_history);
-            renderFilterButton<image::decorator::BlurDecorator>(
-                kButtonSetBlur, *camera.processor_manager, command_history);
+            renderBlurWithSlider(*camera.processor_manager, command_history, app_context.blur_intensity);
             
             if (camera.processor_manager->HasActiveFilters()) {
               ImGui::Separator();
@@ -165,8 +195,7 @@ void renderEffectsMenu(utils::AppContext &app_context, bool is_grid_view) {
       ImGui::Text("Add effects:");
       renderFilterButton<image::decorator::GrayscaleDecorator>(
           kButtonSetGrayscale, image_processor_manager, command_history);
-      renderFilterButton<image::decorator::BlurDecorator>(
-          kButtonSetBlur, image_processor_manager, command_history);
+      renderBlurWithSlider(image_processor_manager, command_history, app_context.blur_intensity);
       
       if (image_processor_manager.HasActiveFilters()) {
         ImGui::Separator();
