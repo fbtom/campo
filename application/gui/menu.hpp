@@ -117,9 +117,8 @@ void renderRedoButton(image::history::CommandHistory &command_history,
 
 void renderBlurWithSlider(
     image::process::ImageProcessorManager &image_processor_manager,
-    image::history::CommandHistory &command_history,
-    int &blur_intensity) {
-  
+    image::history::CommandHistory &command_history, int &blur_intensity) {
+
   ImGui::Text("Blur Intensity:");
   if (ImGui::SliderInt("##BlurIntensity", &blur_intensity, 1, 11)) {
     // Ensure odd numbers only - required for OpenCV kernel size
@@ -127,8 +126,9 @@ void renderBlurWithSlider(
       blur_intensity += 1;
     }
   }
-  
-  if (ImGui::Button("Apply Blur", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+
+  if (ImGui::Button("Apply Blur",
+                    ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
     auto receiver = std::make_shared<image::filter::FilterCommandReceiver>(
         &image_processor_manager);
 
@@ -150,36 +150,43 @@ void renderEffectsMenu(utils::AppContext &app_context, bool is_grid_view) {
   if (is_grid_view) {
     return;
   }
-  
+
   ImGui::Text("Effects");
   ImGui::Separator();
 
   if (app_context.command_history_ptr) {
     auto &command_history = *app_context.command_history_ptr;
-    
+
     std::optional<int> selected_camera_id;
-    
+
     if (app_context.cameras_ptr && !app_context.cameras_ptr->empty()) {
       if (app_context.current_id_ptr && *app_context.current_id_ptr >= 0) {
         selected_camera_id = *app_context.current_id_ptr;
       }
-      
+
       if (selected_camera_id.has_value()) {
         int target_camera_id = selected_camera_id.value();
-        
+
         for (auto &camera : *app_context.cameras_ptr) {
           if (camera.id == target_camera_id && camera.processor_manager) {
             ImGui::Text("Applying effects to Camera %d", camera.id);
-            
+
             ImGui::Text("Add effects:");
             renderFilterButton<image::decorator::GrayscaleDecorator>(
-                kButtonSetGrayscale, *camera.processor_manager, command_history);
-            renderBlurWithSlider(*camera.processor_manager, command_history, app_context.blur_intensity);
-            
+                kButtonSetGrayscale, *camera.processor_manager,
+                command_history);
+            renderBlurWithSlider(*camera.processor_manager, command_history,
+                                 app_context.blur_intensity);
+            renderFilterButton<image::decorator::SepiaDecorator>(
+                kButtonSetSepia, *camera.processor_manager, command_history);
+            renderFilterButton<image::decorator::EdgeDetectionDecorator>(
+                kButtonSetEdgeDetection, *camera.processor_manager,
+                command_history);
+
             if (camera.processor_manager->HasActiveFilters()) {
               ImGui::Separator();
               ImGui::Text("Applied effects:");
-              
+
               auto filter_names = camera.processor_manager->GetActiveFilters();
               for (size_t i = 0; i < filter_names.size(); i++) {
                 ImGui::BulletText("%s", filter_names[i].c_str());
@@ -191,16 +198,21 @@ void renderEffectsMenu(utils::AppContext &app_context, bool is_grid_view) {
       }
     } else if (app_context.image_processor_manager_ptr) {
       auto &image_processor_manager = *app_context.image_processor_manager_ptr;
-      
+
       ImGui::Text("Add effects:");
       renderFilterButton<image::decorator::GrayscaleDecorator>(
           kButtonSetGrayscale, image_processor_manager, command_history);
-      renderBlurWithSlider(image_processor_manager, command_history, app_context.blur_intensity);
-      
+      renderBlurWithSlider(image_processor_manager, command_history,
+                           app_context.blur_intensity);
+      renderFilterButton<image::decorator::SepiaDecorator>(
+          kButtonSetSepia, image_processor_manager, command_history);
+      renderFilterButton<image::decorator::EdgeDetectionDecorator>(
+          kButtonSetEdgeDetection, image_processor_manager, command_history);
+
       if (image_processor_manager.HasActiveFilters()) {
         ImGui::Separator();
         ImGui::Text("Applied effects:");
-        
+
         auto filter_names = image_processor_manager.GetActiveFilters();
         for (size_t i = 0; i < filter_names.size(); i++) {
           ImGui::BulletText("%s", filter_names[i].c_str());
