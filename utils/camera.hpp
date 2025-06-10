@@ -12,6 +12,7 @@
 // System headers
 #include <cstdio>
 #include <fstream>
+#include <optional>
 #include <vector>
 
 // External headers
@@ -38,6 +39,7 @@ struct CameraData {
   bool is_available{false};
   std::unique_ptr<image::process::ImageProcessorManager> processor_manager{
       nullptr};
+  std::unique_ptr<image::history::CommandHistory> command_history{nullptr};
 };
 
 struct AppContext {

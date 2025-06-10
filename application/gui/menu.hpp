@@ -154,72 +154,78 @@ void renderEffectsMenu(utils::AppContext &app_context, bool is_grid_view) {
   ImGui::Text("Effects");
   ImGui::Separator();
 
-  if (app_context.command_history_ptr) {
-    auto &command_history = *app_context.command_history_ptr;
+  std::optional<int> selected_camera_id;
+  image::history::CommandHistory *active_command_history = nullptr;
 
-    std::optional<int> selected_camera_id;
+  if (app_context.cameras_ptr && !app_context.cameras_ptr->empty()) {
+    if (app_context.current_id_ptr && *app_context.current_id_ptr >= 0) {
+      selected_camera_id = *app_context.current_id_ptr;
+    }
 
-    if (app_context.cameras_ptr && !app_context.cameras_ptr->empty()) {
-      if (app_context.current_id_ptr && *app_context.current_id_ptr >= 0) {
-        selected_camera_id = *app_context.current_id_ptr;
-      }
+    if (selected_camera_id.has_value()) {
+      int target_camera_id = selected_camera_id.value();
 
-      if (selected_camera_id.has_value()) {
-        int target_camera_id = selected_camera_id.value();
+      for (auto &camera : *app_context.cameras_ptr) {
+        if (camera.id == target_camera_id && camera.processor_manager &&
+            camera.command_history) {
+          active_command_history = camera.command_history.get();
+          ImGui::Text("Applying effects to Camera %d", camera.id);
 
-        for (auto &camera : *app_context.cameras_ptr) {
-          if (camera.id == target_camera_id && camera.processor_manager) {
-            ImGui::Text("Applying effects to Camera %d", camera.id);
+          ImGui::Text("Add effects:");
+          renderFilterButton<image::decorator::GrayscaleDecorator>(
+              kButtonSetGrayscale, *camera.processor_manager,
+              *active_command_history);
+          renderBlurWithSlider(*camera.processor_manager,
+                               *active_command_history,
+                               app_context.blur_intensity);
+          renderFilterButton<image::decorator::SepiaDecorator>(
+              kButtonSetSepia, *camera.processor_manager,
+              *active_command_history);
+          renderFilterButton<image::decorator::EdgeDetectionDecorator>(
+              kButtonSetEdgeDetection, *camera.processor_manager,
+              *active_command_history);
 
-            ImGui::Text("Add effects:");
-            renderFilterButton<image::decorator::GrayscaleDecorator>(
-                kButtonSetGrayscale, *camera.processor_manager,
-                command_history);
-            renderBlurWithSlider(*camera.processor_manager, command_history,
-                                 app_context.blur_intensity);
-            renderFilterButton<image::decorator::SepiaDecorator>(
-                kButtonSetSepia, *camera.processor_manager, command_history);
-            renderFilterButton<image::decorator::EdgeDetectionDecorator>(
-                kButtonSetEdgeDetection, *camera.processor_manager,
-                command_history);
+          if (camera.processor_manager->HasActiveFilters()) {
+            ImGui::Separator();
+            ImGui::Text("Applied effects:");
 
-            if (camera.processor_manager->HasActiveFilters()) {
-              ImGui::Separator();
-              ImGui::Text("Applied effects:");
-
-              auto filter_names = camera.processor_manager->GetActiveFilters();
-              for (size_t i = 0; i < filter_names.size(); i++) {
-                ImGui::BulletText("%s", filter_names[i].c_str());
-              }
+            auto filter_names = camera.processor_manager->GetActiveFilters();
+            for (size_t i = 0; i < filter_names.size(); i++) {
+              ImGui::BulletText("%s", filter_names[i].c_str());
             }
-            break;
           }
-        }
-      }
-    } else if (app_context.image_processor_manager_ptr) {
-      auto &image_processor_manager = *app_context.image_processor_manager_ptr;
-
-      ImGui::Text("Add effects:");
-      renderFilterButton<image::decorator::GrayscaleDecorator>(
-          kButtonSetGrayscale, image_processor_manager, command_history);
-      renderBlurWithSlider(image_processor_manager, command_history,
-                           app_context.blur_intensity);
-      renderFilterButton<image::decorator::SepiaDecorator>(
-          kButtonSetSepia, image_processor_manager, command_history);
-      renderFilterButton<image::decorator::EdgeDetectionDecorator>(
-          kButtonSetEdgeDetection, image_processor_manager, command_history);
-
-      if (image_processor_manager.HasActiveFilters()) {
-        ImGui::Separator();
-        ImGui::Text("Applied effects:");
-
-        auto filter_names = image_processor_manager.GetActiveFilters();
-        for (size_t i = 0; i < filter_names.size(); i++) {
-          ImGui::BulletText("%s", filter_names[i].c_str());
+          break;
         }
       }
     }
+  } else if (app_context.image_processor_manager_ptr &&
+             app_context.command_history_ptr) {
+    active_command_history = app_context.command_history_ptr;
+    auto &image_processor_manager = *app_context.image_processor_manager_ptr;
 
+    ImGui::Text("Add effects:");
+    renderFilterButton<image::decorator::GrayscaleDecorator>(
+        kButtonSetGrayscale, image_processor_manager, *active_command_history);
+    renderBlurWithSlider(image_processor_manager, *active_command_history,
+                         app_context.blur_intensity);
+    renderFilterButton<image::decorator::SepiaDecorator>(
+        kButtonSetSepia, image_processor_manager, *active_command_history);
+    renderFilterButton<image::decorator::EdgeDetectionDecorator>(
+        kButtonSetEdgeDetection, image_processor_manager,
+        *active_command_history);
+
+    if (image_processor_manager.HasActiveFilters()) {
+      ImGui::Separator();
+      ImGui::Text("Applied effects:");
+
+      auto filter_names = image_processor_manager.GetActiveFilters();
+      for (size_t i = 0; i < filter_names.size(); i++) {
+        ImGui::BulletText("%s", filter_names[i].c_str());
+      }
+    }
+  }
+
+  if (active_command_history) {
     ImGui::Separator();
 
     float half_button_width = ImGui::GetContentRegionAvail().x * 0.5f -
@@ -228,13 +234,14 @@ void renderEffectsMenu(utils::AppContext &app_context, bool is_grid_view) {
       half_button_width = 0.0f;
     }
 
-    renderUndoButton(command_history, half_button_width);
+    renderUndoButton(*active_command_history, half_button_width);
     ImGui::SameLine();
-    renderRedoButton(command_history, half_button_width);
+    renderRedoButton(*active_command_history, half_button_width);
   }
 }
 
 } // namespace
+
 /// @brief Renders the menu bar with options for exiting the application and
 /// updating the camera list.
 /// @param window Pointer to the GLFW window.

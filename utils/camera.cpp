@@ -52,7 +52,10 @@ void refreshCameraList(std::vector<CameraData> &container,
 
     if (camera_data.capture.isOpened()) {
       camera_data.is_available = true;
-      camera_data.processor_manager = std::make_unique<image::process::ImageProcessorManager>();
+      camera_data.processor_manager =
+          std::make_unique<image::process::ImageProcessorManager>();
+      camera_data.command_history =
+          std::make_unique<image::history::CommandHistory>();
     } else {
       camera_data.capture.release();
       camera_data.is_available = false;
@@ -83,9 +86,9 @@ processCameraFrames(std::vector<utils::CameraData> &cameras,
                                     camera.frame.cols, camera.frame.rows,
                                     camera.id});
         }
-        break; 
+        break;
       } else {
-        // For non-selected cameras, add the last frame but don't update it
+        // For non-selected cameras, add the last frame but no update
         if (camera.is_available && !camera.frame.empty()) {
           camera_streams.push_back({static_cast<ImTextureID>(camera.texture_id),
                                     camera.frame.cols, camera.frame.rows,
@@ -94,7 +97,7 @@ processCameraFrames(std::vector<utils::CameraData> &cameras,
       }
     }
   } else {
-    // Process all cameras in grid view
+    // Process cameras in grid view
     for (auto &camera : cameras) {
       if (camera.is_available) {
         camera.capture.set(cv::CAP_PROP_FPS, 60);
