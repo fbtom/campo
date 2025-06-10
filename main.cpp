@@ -71,8 +71,7 @@ int main() {
                                   : grid_display.GetSelectedCameraId();
 
     std::vector<common::CameraStream> current_camera_streams{
-        utils::processCameraFrames(
-            cameras, app_context.image_processor_manager_ptr, selected_camera)};
+        utils::processCameraFrames(cameras, selected_camera)};
 
     grid_display.SetCameraData(current_camera_streams);
 

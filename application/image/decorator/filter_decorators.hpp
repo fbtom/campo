@@ -31,6 +31,8 @@ public:
     }
     Decorate(frame);
   }
+
+  virtual std::string GetFilterName() const = 0;
 };
 
 class GrayscaleDecorator : public FilterDecorator {
@@ -46,16 +48,98 @@ class GrayscaleDecorator : public FilterDecorator {
 public:
   GrayscaleDecorator(std::unique_ptr<ImageProcessor> processor)
       : FilterDecorator(std::move(processor)) {}
+
+  std::string GetFilterName() const override { return "Grayscale"; }
 };
 
 class BlurDecorator : public FilterDecorator {
+private:
+  int blur_intensity_;
+
   void Decorate(cv::Mat &frame) override {
-    cv::GaussianBlur(frame, frame, cv::Size(5, 5), 0);
+
+    int kernel_size = std::max(1, blur_intensity_);
+    if (kernel_size % 2 == 0) {
+      kernel_size += 1;
+    }
+    cv::GaussianBlur(frame, frame, cv::Size(kernel_size, kernel_size), 0);
   }
 
 public:
-  BlurDecorator(std::unique_ptr<ImageProcessor> processor)
+  BlurDecorator(std::unique_ptr<ImageProcessor> processor,
+                int blur_intensity = 1)
+      : FilterDecorator(std::move(processor)), blur_intensity_(blur_intensity) {
+  }
+
+  std::string GetFilterName() const override {
+    return "Blur (intensity: " + std::to_string(blur_intensity_) + ")";
+  }
+
+  void SetBlurIntensity(int intensity) { blur_intensity_ = intensity; }
+
+  int GetBlurIntensity() const { return blur_intensity_; }
+};
+
+class SepiaDecorator : public FilterDecorator {
+  void Decorate(cv::Mat &frame) override {
+    cv::Mat sepia_frame;
+    frame.copyTo(sepia_frame);
+
+    for (int y = 0; y < sepia_frame.rows; y++) {
+      for (int x = 0; x < sepia_frame.cols; x++) {
+        cv::Vec3b &pixel = sepia_frame.at<cv::Vec3b>(y, x);
+        float b = pixel[0];
+        float g = pixel[1];
+        float r = pixel[2];
+
+        pixel[0] =
+            cv::saturate_cast<uchar>(0.272 * r + 0.534 * g + 0.131 * b); // B
+        pixel[1] =
+            cv::saturate_cast<uchar>(0.349 * r + 0.686 * g + 0.168 * b); // G
+        pixel[2] =
+            cv::saturate_cast<uchar>(0.393 * r + 0.769 * g + 0.189 * b); // R
+      }
+    }
+    frame = sepia_frame;
+  }
+
+public:
+  SepiaDecorator(std::unique_ptr<ImageProcessor> processor)
       : FilterDecorator(std::move(processor)) {}
+
+  std::string GetFilterName() const override { return "Sepia"; }
+};
+
+class EdgeDetectionDecorator : public FilterDecorator {
+private:
+  int threshold1_;
+  int threshold2_;
+
+  void Decorate(cv::Mat &frame) override {
+    cv::Mat gray, edges;
+    cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
+    cv::Canny(gray, edges, threshold1_, threshold2_);
+    cv::cvtColor(edges, frame, cv::COLOR_GRAY2BGR);
+  }
+
+public:
+  EdgeDetectionDecorator(std::unique_ptr<ImageProcessor> processor,
+                         int threshold1 = 50, int threshold2 = 150)
+      : FilterDecorator(std::move(processor)), threshold1_(threshold1),
+        threshold2_(threshold2) {}
+
+  std::string GetFilterName() const override {
+    return "Edge Detection (th1:" + std::to_string(threshold1_) +
+           " th2:" + std::to_string(threshold2_) + ")";
+  }
+
+  void SetThresholds(int threshold1, int threshold2) {
+    threshold1_ = threshold1;
+    threshold2_ = threshold2;
+  }
+
+  int GetThreshold1() const { return threshold1_; }
+  int GetThreshold2() const { return threshold2_; }
 };
 
 } // namespace decorator

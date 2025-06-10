@@ -18,3 +18,5 @@ constexpr const char *const kButtonUndo{"Undo"};
 constexpr const char *const kButtonRedo{"Redo"};
 constexpr const char *const kButtonSetGrayscale{"Apply Grayscale"};
 constexpr const char *const kButtonSetBlur{"Apply Blur"};
+constexpr const char *const kButtonSetSepia{"Apply Sepia"};
+constexpr const char *const kButtonSetEdgeDetection{"Apply Edge Detection"};

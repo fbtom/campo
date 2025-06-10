@@ -12,6 +12,7 @@
 // System headers
 #include <cstdio>
 #include <fstream>
+#include <optional>
 #include <vector>
 
 // External headers
@@ -36,6 +37,9 @@ struct CameraData {
   cv::Mat frame;
   GLuint texture_id;
   bool is_available{false};
+  std::unique_ptr<image::process::ImageProcessorManager> processor_manager{
+      nullptr};
+  std::unique_ptr<image::history::CommandHistory> command_history{nullptr};
 };
 
 struct AppContext {
@@ -43,6 +47,7 @@ struct AppContext {
   int *current_id_ptr;
   image::history::CommandHistory *command_history_ptr;
   image::process::ImageProcessorManager *image_processor_manager_ptr;
+  int blur_intensity = 1;
 };
 
 /// @brief Get a list of available camera IDs.
@@ -64,13 +69,11 @@ void refreshCameraList(std::vector<CameraData> &container,
 
 /// @brief Processes frames and generates a list of CameraStream.
 /// @param cameras as a list of CameraData representing the cameras.
-/// @param processor_manager as a pointer to ImageProcessorManager.
 /// @param selected_camera_id Optional ID of the selected camera to process
 /// (when in single camera view).
 /// @return std::vector<common::CameraStream> containing camera information.
-std::vector<common::CameraStream> processCameraFrames(
-    std::vector<utils::CameraData> &cameras,
-    image::process::ImageProcessorManager *processor_manager = nullptr,
-    std::optional<int> selected_camera_id = std::nullopt);
+std::vector<common::CameraStream>
+processCameraFrames(std::vector<utils::CameraData> &cameras,
+                    std::optional<int> selected_camera_id = std::nullopt);
 
 } // namespace utils
