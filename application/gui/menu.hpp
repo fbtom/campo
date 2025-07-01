@@ -270,7 +270,7 @@ void renderEffectsMenu(utils::AppContext &app_context, bool is_grid_view) {
 
   renderRegionSelectionMenu(app_context);
 
-  std::optional<int> selected_camera_id;
+  std::optional<int> selected_camera_id{};
   image::history::CommandHistory *active_command_history = nullptr;
 
   if (app_context.cameras_ptr && !app_context.cameras_ptr->empty()) {
@@ -316,7 +316,7 @@ void renderEffectsMenu(utils::AppContext &app_context, bool is_grid_view) {
     }
   } else if (app_context.image_processor_manager_ptr &&
              app_context.command_history_ptr) {
-    active_command_history = app_context.command_history_ptr;
+    active_command_history = app_context.command_history_ptr.get();
     auto &image_processor_manager = *app_context.image_processor_manager_ptr;
 
     ImGui::Text("Add effects:");
@@ -436,7 +436,7 @@ void renderRightPanel(GridDisplay &grid_display, int &current_id,
   ImGui::BeginChild("Right Panel", ImVec2(0, 0), true);
 
   std::optional<int> chosen_camera =
-      grid_display.RenderGrid(app_context.region_selector_ptr);
+      grid_display.RenderGrid(app_context.region_selector_ptr.get());
   if (chosen_camera.has_value()) {
     current_id = chosen_camera.value();
   }

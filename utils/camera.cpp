@@ -9,6 +9,7 @@
 
 #include "utils/camera.hpp"
 #include "application/image/image_process/image_processor_manager.hpp"
+#include <GLFW/glfw3.h>
 
 namespace utils {
 
@@ -81,6 +82,10 @@ processCameraFrames(std::vector<utils::CameraData> &cameras,
             camera.processor_manager->processFrame(camera.frame);
           }
 
+          // Delete old texture before creating new one
+          if (camera.texture_id != 0) {
+            glDeleteTextures(1, &camera.texture_id);
+          }
           camera.texture_id = utils::cvMatToTexture(camera.frame);
           camera_streams.push_back({static_cast<ImTextureID>(camera.texture_id),
                                     camera.frame.cols, camera.frame.rows,
@@ -108,6 +113,10 @@ processCameraFrames(std::vector<utils::CameraData> &cameras,
             camera.processor_manager->processFrame(camera.frame);
           }
 
+          // Delete old texture before creating new one
+          if (camera.texture_id != 0) {
+            glDeleteTextures(1, &camera.texture_id);
+          }
           camera.texture_id = utils::cvMatToTexture(camera.frame);
           camera_streams.push_back({static_cast<ImTextureID>(camera.texture_id),
                                     camera.frame.cols, camera.frame.rows,

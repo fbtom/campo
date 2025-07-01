@@ -12,6 +12,7 @@
 // System headers
 #include <cstdio>
 #include <fstream>
+#include <memory>
 #include <optional>
 #include <vector>
 
@@ -44,11 +45,12 @@ struct CameraData {
 };
 
 struct AppContext {
-  std::vector<CameraData> *cameras_ptr;
-  int *current_id_ptr;
-  image::history::CommandHistory *command_history_ptr;
-  image::process::ImageProcessorManager *image_processor_manager_ptr;
-  image::region::RegionSelector *region_selector_ptr;
+  std::unique_ptr<std::vector<CameraData>> cameras_ptr{nullptr};
+  std::unique_ptr<int> current_id_ptr{nullptr};
+  std::unique_ptr<image::history::CommandHistory> command_history_ptr{nullptr};
+  std::unique_ptr<image::process::ImageProcessorManager>
+      image_processor_manager_ptr{nullptr};
+  std::unique_ptr<image::region::RegionSelector> region_selector_ptr{nullptr};
   int blur_intensity = 1;
 };
 
