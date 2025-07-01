@@ -82,7 +82,6 @@ processCameraFrames(std::vector<utils::CameraData> &cameras,
             camera.processor_manager->processFrame(camera.frame);
           }
 
-          // Delete old texture before creating new one
           if (camera.texture_id != 0) {
             glDeleteTextures(1, &camera.texture_id);
           }
@@ -113,7 +112,6 @@ processCameraFrames(std::vector<utils::CameraData> &cameras,
             camera.processor_manager->processFrame(camera.frame);
           }
 
-          // Delete old texture before creating new one
           if (camera.texture_id != 0) {
             glDeleteTextures(1, &camera.texture_id);
           }
