@@ -19,9 +19,8 @@ namespace decorator {
 
 class FilterDecorator : public ImageProcessor {
   virtual void Decorate(cv::Mat &frame) = 0;
-  virtual void
-  DecorateRegion(cv::Mat &frame,
-                 std::optional<cv::Rect> region_opt = std::nullopt) {
+  void DecorateRegion(cv::Mat &frame,
+                      std::optional<cv::Rect> region_opt = std::nullopt) {
     if (!region_opt.has_value()) {
       Decorate(frame);
       return;
