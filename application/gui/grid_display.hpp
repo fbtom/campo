@@ -15,7 +15,6 @@
 #include "gui_utils.hpp"
 #include "imgui.h"
 #include <algorithm>
-#include <memory>
 #include <optional>
 #include <string>
 #include <unordered_map>

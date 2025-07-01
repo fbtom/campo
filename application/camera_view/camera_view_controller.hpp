@@ -33,7 +33,8 @@ public:
 
   std::optional<int> GetSelectedCameraId() const;
 
-  std::optional<int> RenderView(image::region::RegionSelector * = nullptr);
+  std::optional<int>
+  RenderView(image::region::RegionSelector *region_selector = nullptr);
   bool RenderReturnButton();
   bool IsGridView() const;
 };

@@ -24,15 +24,6 @@ namespace history {
 struct CommandPair {
   std::unique_ptr<Command> do_command;
   std::unique_ptr<Command> undo_command;
-
-  // Add explicit move semantics
-  CommandPair() = default;
-  CommandPair(CommandPair &&) = default;
-  CommandPair &operator=(CommandPair &&) = default;
-
-  // Explicitly delete copy operations
-  CommandPair(const CommandPair &) = delete;
-  CommandPair &operator=(const CommandPair &) = delete;
 };
 
 class CommandHistory {
