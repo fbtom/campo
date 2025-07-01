@@ -435,10 +435,10 @@ void renderRightPanel(GridDisplay &grid_display, int &current_id,
                       utils::AppContext &app_context) {
   ImGui::BeginChild("Right Panel", ImVec2(0, 0), true);
 
-  std::optional<int> choosen_camera =
+  std::optional<int> chosen_camera =
       grid_display.RenderGrid(app_context.region_selector_ptr);
-  if (choosen_camera.has_value()) {
-    current_id = choosen_camera.value();
+  if (chosen_camera.has_value()) {
+    current_id = chosen_camera.value();
   }
 
   ImGui::EndChild();
