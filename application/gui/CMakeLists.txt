@@ -8,4 +8,4 @@ target_include_directories(gui INTERFACE
     ${CMAKE_SOURCE_DIR}
 )
 
-target_link_libraries(gui INTERFACE ImGui image_history image_filter image_decorator image_process camera_view common)
+target_link_libraries(gui INTERFACE ImGui image_history image_filter image_decorator image_process image_region camera_view common)

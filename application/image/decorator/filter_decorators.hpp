@@ -12,14 +12,27 @@
 #include "application/image/image_process/image_processor.hpp"
 #include "opencv2/opencv.hpp"
 #include <memory>
+#include <optional>
 
 namespace image {
 namespace decorator {
 
 class FilterDecorator : public ImageProcessor {
   virtual void Decorate(cv::Mat &frame) = 0;
+  virtual void DecorateRegion(cv::Mat &frame, const cv::Rect &region) {
+    if (region.x >= 0 && region.y >= 0 &&
+        region.x + region.width <= frame.cols &&
+        region.y + region.height <= frame.rows) {
+      cv::Mat region_mat = frame(region);
+      cv::Mat region_copy;
+      region_mat.copyTo(region_copy);
+      Decorate(region_copy);
+      region_copy.copyTo(region_mat);
+    }
+  }
 
   std::unique_ptr<ImageProcessor> image_processor_;
+  std::optional<cv::Rect> processing_region_;
 
 public:
   FilterDecorator(std::unique_ptr<ImageProcessor> processor)
@@ -29,7 +42,20 @@ public:
     if (image_processor_) {
       image_processor_->Process(frame);
     }
-    Decorate(frame);
+
+    if (processing_region_.has_value()) {
+      DecorateRegion(frame, processing_region_.value());
+    } else {
+      Decorate(frame);
+    }
+  }
+
+  void SetProcessingRegion(const std::optional<cv::Rect> &region) {
+    processing_region_ = region;
+  }
+
+  std::optional<cv::Rect> GetProcessingRegion() const {
+    return processing_region_;
   }
 
   virtual std::string GetFilterName() const = 0;

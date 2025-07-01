@@ -16,6 +16,7 @@
 #include "utils/camera.hpp"
 #include "utils/conversions.hpp"
 #include "utils/frame.hpp"
+#include "utils/gui.hpp"
 #include "utils/json.hpp"
 #include <imgui.h>
 
@@ -74,13 +75,26 @@ template <typename FilterType>
 void renderFilterButton(
     const char *label,
     image::process::ImageProcessorManager &image_processor_manager,
-    image::history::CommandHistory &command_history) {
+    image::history::CommandHistory &command_history,
+    utils::AppContext &app_context) {
   if (ImGui::Button(label, ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
     auto receiver = std::make_shared<image::filter::FilterCommandReceiver>(
         &image_processor_manager);
 
     auto filter = std::make_unique<FilterType>(
         std::make_unique<image::BaseImageProcessor>());
+
+    std::optional<cv::Rect> region = std::nullopt;
+    if (app_context.region_selector_ptr &&
+        app_context.region_selector_ptr->GetMode() ==
+            image::region::FilterMode::kPartialRegion &&
+        app_context.region_selector_ptr->HasValidSelection()) {
+      region = app_context.region_selector_ptr->GetRegion();
+    }
+
+    if (region.has_value()) {
+      filter->SetProcessingRegion(region);
+    }
 
     auto do_command = std::make_unique<image::filter::FilterCommand>(
         receiver, std::move(filter));
@@ -117,7 +131,8 @@ void renderRedoButton(image::history::CommandHistory &command_history,
 
 void renderBlurWithSlider(
     image::process::ImageProcessorManager &image_processor_manager,
-    image::history::CommandHistory &command_history, int &blur_intensity) {
+    image::history::CommandHistory &command_history, int &blur_intensity,
+    utils::AppContext &app_context) {
 
   ImGui::Text("Blur Intensity:");
   if (ImGui::SliderInt("##BlurIntensity", &blur_intensity, 1, 11)) {
@@ -146,6 +161,105 @@ void renderBlurWithSlider(
   }
 }
 
+void renderRegionSelectionMenu(utils::AppContext &app_context) {
+  if (!app_context.region_selector_ptr) {
+    return;
+  }
+
+  auto &region_selector = *app_context.region_selector_ptr;
+
+  ImGui::Text("Filter Application Mode:");
+
+  bool is_full_screen =
+      (region_selector.GetMode() == image::region::FilterMode::kFullScreen);
+  bool is_partial =
+      (region_selector.GetMode() == image::region::FilterMode::kPartialRegion);
+
+  if (ImGui::RadioButton("Full Screen", is_full_screen)) {
+    if (!is_full_screen) {
+      region_selector.ToggleMode();
+      // Set default region for new filters only
+      if (app_context.cameras_ptr && app_context.current_id_ptr) {
+        for (auto &camera : *app_context.cameras_ptr) {
+          if (camera.id == *app_context.current_id_ptr &&
+              camera.processor_manager) {
+            camera.processor_manager->SetDefaultRegion(std::nullopt);
+          }
+        }
+      }
+      if (app_context.image_processor_manager_ptr) {
+        app_context.image_processor_manager_ptr->SetDefaultRegion(std::nullopt);
+      }
+    }
+  }
+
+  if (ImGui::RadioButton("Selected Region", is_partial)) {
+    if (!is_partial) {
+      region_selector.ToggleMode();
+      if (region_selector.HasValidSelection()) {
+        auto region = region_selector.GetRegion();
+        if (app_context.cameras_ptr && app_context.current_id_ptr) {
+          for (auto &camera : *app_context.cameras_ptr) {
+            if (camera.id == *app_context.current_id_ptr &&
+                camera.processor_manager) {
+              camera.processor_manager->SetDefaultRegion(region);
+            }
+          }
+        }
+        if (app_context.image_processor_manager_ptr) {
+          app_context.image_processor_manager_ptr->SetDefaultRegion(region);
+        }
+      }
+    }
+  }
+
+  if (is_partial) {
+    if (region_selector.HasValidSelection()) {
+      auto region = region_selector.GetRegion();
+      if (region.has_value()) {
+        ImGui::Text("Selected region: %dx%d at (%d, %d)", region->width,
+                    region->height, region->x, region->y);
+      }
+
+      if (ImGui::Button("Clear Selection",
+                        ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+        region_selector.ClearSelection();
+        if (app_context.cameras_ptr && app_context.current_id_ptr) {
+          for (auto &camera : *app_context.cameras_ptr) {
+            if (camera.id == *app_context.current_id_ptr &&
+                camera.processor_manager) {
+              camera.processor_manager->SetDefaultRegion(std::nullopt);
+            }
+          }
+        }
+        if (app_context.image_processor_manager_ptr) {
+          app_context.image_processor_manager_ptr->SetDefaultRegion(
+              std::nullopt);
+        }
+      }
+
+      if (ImGui::Button("Apply to Current Filters",
+                        ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+        if (app_context.cameras_ptr && app_context.current_id_ptr) {
+          for (auto &camera : *app_context.cameras_ptr) {
+            if (camera.id == *app_context.current_id_ptr &&
+                camera.processor_manager) {
+              camera.processor_manager->SetProcessingRegion(region);
+            }
+          }
+        }
+        if (app_context.image_processor_manager_ptr) {
+          app_context.image_processor_manager_ptr->SetProcessingRegion(region);
+        }
+      }
+    } else {
+      ImGui::Text("Click and drag on the camera view to select a region");
+    }
+  }
+
+  ImGui::Separator();
+}
+
 void renderEffectsMenu(utils::AppContext &app_context, bool is_grid_view) {
   if (is_grid_view) {
     return;
@@ -153,6 +267,8 @@ void renderEffectsMenu(utils::AppContext &app_context, bool is_grid_view) {
 
   ImGui::Text("Effects");
   ImGui::Separator();
+
+  renderRegionSelectionMenu(app_context);
 
   std::optional<int> selected_camera_id;
   image::history::CommandHistory *active_command_history = nullptr;
@@ -172,18 +288,18 @@ void renderEffectsMenu(utils::AppContext &app_context, bool is_grid_view) {
           ImGui::Text("Applying effects to Camera %d", camera.id);
 
           ImGui::Text("Add effects:");
-          renderFilterButton<image::decorator::GrayscaleDecorator>(
+          gui::renderFilterButton<image::decorator::GrayscaleDecorator>(
               kButtonSetGrayscale, *camera.processor_manager,
-              *active_command_history);
-          renderBlurWithSlider(*camera.processor_manager,
-                               *active_command_history,
-                               app_context.blur_intensity);
-          renderFilterButton<image::decorator::SepiaDecorator>(
+              *active_command_history, app_context);
+          gui::renderBlurWithSlider(*camera.processor_manager,
+                                    *active_command_history,
+                                    app_context.blur_intensity, app_context);
+          gui::renderFilterButton<image::decorator::SepiaDecorator>(
               kButtonSetSepia, *camera.processor_manager,
-              *active_command_history);
-          renderFilterButton<image::decorator::EdgeDetectionDecorator>(
+              *active_command_history, app_context);
+          gui::renderFilterButton<image::decorator::EdgeDetectionDecorator>(
               kButtonSetEdgeDetection, *camera.processor_manager,
-              *active_command_history);
+              *active_command_history, app_context);
 
           if (camera.processor_manager->HasActiveFilters()) {
             ImGui::Separator();
@@ -204,15 +320,17 @@ void renderEffectsMenu(utils::AppContext &app_context, bool is_grid_view) {
     auto &image_processor_manager = *app_context.image_processor_manager_ptr;
 
     ImGui::Text("Add effects:");
-    renderFilterButton<image::decorator::GrayscaleDecorator>(
-        kButtonSetGrayscale, image_processor_manager, *active_command_history);
-    renderBlurWithSlider(image_processor_manager, *active_command_history,
-                         app_context.blur_intensity);
-    renderFilterButton<image::decorator::SepiaDecorator>(
-        kButtonSetSepia, image_processor_manager, *active_command_history);
-    renderFilterButton<image::decorator::EdgeDetectionDecorator>(
+    gui::renderFilterButton<image::decorator::GrayscaleDecorator>(
+        kButtonSetGrayscale, image_processor_manager, *active_command_history,
+        app_context);
+    gui::renderBlurWithSlider(image_processor_manager, *active_command_history,
+                              app_context.blur_intensity, app_context);
+    gui::renderFilterButton<image::decorator::SepiaDecorator>(
+        kButtonSetSepia, image_processor_manager, *active_command_history,
+        app_context);
+    gui::renderFilterButton<image::decorator::EdgeDetectionDecorator>(
         kButtonSetEdgeDetection, image_processor_manager,
-        *active_command_history);
+        *active_command_history, app_context);
 
     if (image_processor_manager.HasActiveFilters()) {
       ImGui::Separator();
@@ -234,9 +352,9 @@ void renderEffectsMenu(utils::AppContext &app_context, bool is_grid_view) {
       half_button_width = 0.0f;
     }
 
-    renderUndoButton(*active_command_history, half_button_width);
+    gui::renderUndoButton(*active_command_history, half_button_width);
     ImGui::SameLine();
-    renderRedoButton(*active_command_history, half_button_width);
+    gui::renderRedoButton(*active_command_history, half_button_width);
   }
 }
 
@@ -313,10 +431,12 @@ void renderLeftPanel(GLFWwindow *window, utils::AppContext &app_context,
 /// display.
 /// @param grid_display Grid display for rendering camera data.
 /// @param current_id Reference to the current camera ID.
-void renderRightPanel(GridDisplay &grid_display, int &current_id) {
+void renderRightPanel(GridDisplay &grid_display, int &current_id,
+                      utils::AppContext &app_context) {
   ImGui::BeginChild("Right Panel", ImVec2(0, 0), true);
 
-  std::optional<int> choosen_camera = grid_display.RenderGrid();
+  std::optional<int> choosen_camera =
+      grid_display.RenderGrid(app_context.region_selector_ptr);
   if (choosen_camera.has_value()) {
     current_id = choosen_camera.value();
   }
@@ -356,7 +476,7 @@ void renderGui(GLFWwindow *window, utils::AppContext &app_context,
 
     ImGui::SameLine();
 
-    renderRightPanel(grid_display, *app_context.current_id_ptr);
+    renderRightPanel(grid_display, *app_context.current_id_ptr, app_context);
     ImGui::End();
   }
 

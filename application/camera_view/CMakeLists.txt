@@ -22,4 +22,5 @@ target_link_libraries(camera_view
         glfw
         ImGui
         common
+        image_region
 )

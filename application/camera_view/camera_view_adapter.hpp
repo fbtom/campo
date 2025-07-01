@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "application/image/region/region_selector.hpp"
 #include "camera_view_controller.hpp"
 #include "common/camera_stream.hpp"
 #include <optional>
@@ -31,7 +32,8 @@ public:
 
   std::optional<int> GetSelectedCameraId() const;
 
-  std::optional<int> RenderView();
+  std::optional<int>
+  RenderView(image::region::RegionSelector *region_selector = nullptr);
   bool RenderReturnButton();
   bool IsGridView() const;
 };

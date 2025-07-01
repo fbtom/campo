@@ -24,6 +24,7 @@
 #include "application/gui/gui_utils.hpp"
 #include "application/gui/menu.hpp"
 #include "application/image/image_process/image_processor_manager.hpp"
+#include "application/image/region/region_selector.hpp"
 #include "common/camera_stream.hpp"
 #include "utils/callback_handler.hpp"
 #include "utils/camera.hpp"
@@ -53,8 +54,10 @@ int main() {
 
   image::history::CommandHistory command_history;
   image::process::ImageProcessorManager image_processor_manager;
+  image::region::RegionSelector region_selector;
   app_context.command_history_ptr = &command_history;
   app_context.image_processor_manager_ptr = &image_processor_manager;
+  app_context.region_selector_ptr = &region_selector;
 
   auto initial_camera_ids = utils::getCameraIDs();
   utils::refreshCameraList(cameras, initial_camera_ids);

@@ -21,7 +21,8 @@ void CameraViewController::SetCameraData(
   single_view_.SetCameraData(streams);
 }
 
-std::optional<int> CameraViewController::RenderView() {
+std::optional<int> CameraViewController::RenderView(
+    image::region::RegionSelector *region_selector) {
   const ImVec2 available_region_size = ImGui::GetContentRegionAvail();
 
   if (is_grid_view_) {
@@ -31,7 +32,7 @@ std::optional<int> CameraViewController::RenderView() {
     });
     return std::nullopt;
   } else {
-    return single_view_.Render(available_region_size);
+    return single_view_.Render(available_region_size, region_selector);
   }
 }
 
@@ -42,7 +43,7 @@ bool CameraViewController::RenderReturnButton() {
     button_clicked = ImGui::Button("Return to Grid View", ImVec2(-1, 0));
     if (button_clicked) {
       is_grid_view_ = true;
-      single_view_.SetSelectedCamera(-1); 
+      single_view_.SetSelectedCamera(-1);
     }
   }
 

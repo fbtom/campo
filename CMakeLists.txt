@@ -50,6 +50,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     image_filter
     image_history
     image_process
+    image_region
 )
 
 add_subdirectory(test)

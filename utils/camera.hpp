@@ -24,6 +24,7 @@
 // Project headers
 #include "application/image/history/command_history.hpp"
 #include "application/image/image_process/image_processor_manager.hpp"
+#include "application/image/region/region_selector.hpp"
 #include "common/camera_stream.hpp"
 #include "utils/conversions.hpp"
 
@@ -47,6 +48,7 @@ struct AppContext {
   int *current_id_ptr;
   image::history::CommandHistory *command_history_ptr;
   image::process::ImageProcessorManager *image_processor_manager_ptr;
+  image::region::RegionSelector *region_selector_ptr;
   int blur_intensity = 1;
 };
 
