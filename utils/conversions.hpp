@@ -26,14 +26,21 @@ inline GLuint cvMatToTexture(cv::Mat &mat) {
   glGenTextures(1, &textureId);
   glBindTexture(GL_TEXTURE_2D, textureId);
 
-  cv::cvtColor(mat, mat, cv::COLOR_BGR2RGB);
-
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mat.cols, mat.rows, 0, GL_RGB,
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mat.cols, mat.rows, 0, GL_BGR,
                GL_UNSIGNED_BYTE, mat.data);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
   return textureId;
+}
+
+inline void updateTextureData(GLuint textureId, cv::Mat &mat) {
+  if (textureId == 0) return;
+  
+  glBindTexture(GL_TEXTURE_2D, textureId);
+  
+  glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, mat.cols, mat.rows, 
+                  GL_BGR, GL_UNSIGNED_BYTE, mat.data);
 }
 
 } // namespace utils
