@@ -36,17 +36,20 @@ class FilterDecorator : public ImageProcessor {
 
   std::unique_ptr<ImageProcessor> image_processor_;
   std::optional<cv::Rect> processing_region_;
+  bool enabled_;
 
 public:
   FilterDecorator(std::unique_ptr<ImageProcessor> processor)
-      : image_processor_(std::move(processor)) {}
+      : image_processor_(std::move(processor)), enabled_(true) {}
 
   void Process(cv::Mat &frame) override {
     if (image_processor_) {
       image_processor_->Process(frame);
     }
 
-    DecorateRegion(frame, processing_region_);
+    if (enabled_) {
+      DecorateRegion(frame, processing_region_);
+    }
   }
 
   void SetProcessingRegion(const std::optional<cv::Rect> &region) {
@@ -55,6 +58,14 @@ public:
 
   std::optional<cv::Rect> GetProcessingRegion() const {
     return processing_region_;
+  }
+
+  void SetEnabled(bool enabled) {
+    enabled_ = enabled;
+  }
+
+  bool IsEnabled() const {
+    return enabled_;
   }
 
   virtual std::string GetFilterName() const = 0;

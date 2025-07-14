@@ -50,6 +50,20 @@ public:
     }
   }
 
+  void AddFilterAtIndex(std::unique_ptr<decorator::FilterDecorator> filter,
+                        size_t index) {
+    if (filter) {
+      if (default_region_.has_value()) {
+        filter->SetProcessingRegion(default_region_);
+      }
+      if (index >= filters_.size()) {
+        filters_.push_back(std::move(filter));
+      } else {
+        filters_.insert(filters_.begin() + index, std::move(filter));
+      }
+    }
+  }
+
   void SetDefaultRegion(const std::optional<cv::Rect> &region) {
     default_region_ = region;
   }
@@ -86,6 +100,34 @@ public:
 
     return filter_names;
   }
+
+  std::unique_ptr<decorator::FilterDecorator> RemoveFilter(size_t index) {
+    if (index >= filters_.size()) {
+      return nullptr;
+    }
+
+    std::unique_ptr<decorator::FilterDecorator> removed_filter =
+        std::move(filters_[index]);
+    filters_.erase(filters_.begin() + index);
+
+    return removed_filter;
+  }
+
+  void ToggleFilter(size_t index) {
+    if (index < filters_.size() && filters_[index]) {
+      bool current_state = filters_[index]->IsEnabled();
+      filters_[index]->SetEnabled(!current_state);
+    }
+  }
+
+  bool IsFilterEnabled(size_t index) const {
+    if (index < filters_.size() && filters_[index]) {
+      return filters_[index]->IsEnabled();
+    }
+    return false;
+  }
+
+  size_t GetFilterCount() const { return filters_.size(); }
 
   bool HasActiveFilters() const { return !filters_.empty(); }
 
