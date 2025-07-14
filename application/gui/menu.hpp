@@ -24,19 +24,21 @@
 #include <imgui.h>
 
 #include "application/image/decorator/filter_decorators.hpp"
+#include "application/image/filter/add_filter_at_index_command.hpp"
 #include "application/image/filter/add_filter_command.hpp"
 #include "application/image/filter/filter_command.hpp"
 #include "application/image/filter/filter_command_receiver.hpp"
 #include "application/image/filter/remove_filter_command.hpp"
 #include "application/image/filter/remove_specific_filter_command.hpp"
 #include "application/image/filter/toggle_filter_command.hpp"
-#include "application/image/filter/add_filter_at_index_command.hpp"
 #include "application/image/history/command_history.hpp"
 #include "application/image/image_process/image_processor_manager.hpp"
 
 #include <memory>
 
 namespace gui {
+
+using FilterMode = image::region::FilterMode;
 
 namespace {
 
@@ -90,7 +92,7 @@ void renderFilterButton(
     std::optional<cv::Rect> region = std::nullopt;
     if (app_context.region_selector_ptr &&
         app_context.region_selector_ptr->GetMode() ==
-            image::region::FilterMode::kPartialRegion &&
+            FilterMode::kPartialRegion &&
         app_context.region_selector_ptr->HasValidSelection()) {
       region = app_context.region_selector_ptr->GetRegion();
     }
@@ -145,7 +147,7 @@ void renderBlurWithSlider(
     }
   }
 
-  if (ImGui::Button("Apply Blur",
+  if (ImGui::Button(kButtonSetBlur,
                     ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
     auto receiver = std::make_shared<image::filter::FilterCommandReceiver>(
         &image_processor_manager);
@@ -164,52 +166,53 @@ void renderBlurWithSlider(
   }
 }
 
+void modeSelectionButton(const std::string &label,
+                         utils::AppContext &app_context, bool screen_mode_0,
+                         bool screen_mode_1) {
+  if (ImGui::RadioButton(label.c_str(), screen_mode_0)) {
+    if (screen_mode_1) {
+      app_context.region_selector_ptr->ToggleMode();
+    }
+  }
+}
+
 void renderRegionSelectionMenu(utils::AppContext &app_context) {
   if (!app_context.region_selector_ptr) {
     return;
   }
-
   auto mode = app_context.region_selector_ptr->GetMode();
-  if (ImGui::RadioButton(
-          "Full screen", mode == image::region::FilterMode::kFullScreen)) {
-    if (mode != image::region::FilterMode::kFullScreen) {
-      app_context.region_selector_ptr->ToggleMode();
-    }
-  }
+  const auto is_full = mode == FilterMode::kFullScreen;
+  const auto is_partial = mode == FilterMode::kPartialRegion;
+
+  modeSelectionButton("Full screen", app_context, is_full, is_partial);
   ImGui::SameLine();
-  if (ImGui::RadioButton(
-          "Selected region",
-          mode == image::region::FilterMode::kPartialRegion)) {
-    if (mode != image::region::FilterMode::kPartialRegion) {
-      app_context.region_selector_ptr->ToggleMode();
-    }
-  }
+  modeSelectionButton("Region", app_context, is_partial, is_full);
 
   ImGui::Separator();
 }
 
-void renderFilterListItem(const std::string& filter_name, size_t index, 
-                         image::process::ImageProcessorManager& manager,
-                         image::history::CommandHistory& command_history) {
+void renderFilterListItem(const std::string &filter_name, size_t index,
+                          image::process::ImageProcessorManager &manager,
+                          image::history::CommandHistory &command_history) {
   ImGui::PushID(static_cast<int>(index));
-  
+
   // Toggle switch
   bool enabled = manager.IsFilterEnabled(index);
   if (ImGui::Checkbox("##enabled", &enabled)) {
     manager.ToggleFilter(index);
   }
-  
+
   ImGui::SameLine();
-  
+
   // Filter name
   if (enabled) {
     ImGui::Text("%s", filter_name.c_str());
   } else {
     ImGui::TextDisabled("%s (disabled)", filter_name.c_str());
   }
-  
+
   ImGui::SameLine();
-  
+
   // Remove button
   ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8f, 0.2f, 0.2f, 0.8f));
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1.0f, 0.3f, 0.3f, 1.0f));
@@ -217,12 +220,12 @@ void renderFilterListItem(const std::string& filter_name, size_t index,
     manager.RemoveFilter(index);
   }
   ImGui::PopStyleColor(2);
-  
+
   ImGui::PopID();
 }
 
-void renderActiveFiltersList(image::process::ImageProcessorManager& manager,
-                            image::history::CommandHistory& command_history) {
+void renderActiveFiltersList(image::process::ImageProcessorManager &manager,
+                             image::history::CommandHistory &command_history) {
   if (!manager.HasActiveFilters()) {
     return;
   }
@@ -233,6 +236,26 @@ void renderActiveFiltersList(image::process::ImageProcessorManager& manager,
   auto filter_names = manager.GetActiveFilters();
   for (size_t i = 0; i < filter_names.size(); i++) {
     renderFilterListItem(filter_names[i], i, manager, command_history);
+  }
+}
+
+void renderFilterButtons(image::process::ImageProcessorManager &manager,
+                         image::history::CommandHistory &command_history,
+                         utils::AppContext &app_context) {
+  gui::renderFilterButton<image::decorator::GrayscaleDecorator>(
+      kButtonSetGrayscale, manager, command_history, app_context);
+
+  gui::renderBlurWithSlider(manager, command_history,
+                            app_context.blur_intensity, app_context);
+
+  gui::renderFilterButton<image::decorator::SepiaDecorator>(
+      kButtonSetSepia, manager, command_history, app_context);
+
+  gui::renderFilterButton<image::decorator::EdgeDetectionDecorator>(
+      kButtonSetEdgeDetection, manager, command_history, app_context);
+
+  if (manager.HasActiveFilters()) {
+    renderActiveFiltersList(manager, command_history);
   }
 }
 
@@ -263,23 +286,8 @@ void renderEffectsMenu(utils::AppContext &app_context, bool is_grid_view) {
           active_command_history = camera.command_history.get();
           ImGui::Text("Applying effects to Camera %d", camera.id);
 
-          ImGui::Text("Add effects:");
-          gui::renderFilterButton<image::decorator::GrayscaleDecorator>(
-              kButtonSetGrayscale, *camera.processor_manager,
-              *active_command_history, app_context);
-          gui::renderBlurWithSlider(*camera.processor_manager,
-                                    *active_command_history,
-                                    app_context.blur_intensity, app_context);
-          gui::renderFilterButton<image::decorator::SepiaDecorator>(
-              kButtonSetSepia, *camera.processor_manager,
-              *active_command_history, app_context);
-          gui::renderFilterButton<image::decorator::EdgeDetectionDecorator>(
-              kButtonSetEdgeDetection, *camera.processor_manager,
-              *active_command_history, app_context);
-
-          if (camera.processor_manager->HasActiveFilters()) {
-            renderActiveFiltersList(*camera.processor_manager, *active_command_history);
-          }
+          renderFilterButtons(*camera.processor_manager,
+                              *active_command_history, app_context);
           break;
         }
       }
@@ -289,22 +297,8 @@ void renderEffectsMenu(utils::AppContext &app_context, bool is_grid_view) {
     active_command_history = app_context.command_history_ptr.get();
     auto &image_processor_manager = *app_context.image_processor_manager_ptr;
 
-    ImGui::Text("Add effects:");
-    gui::renderFilterButton<image::decorator::GrayscaleDecorator>(
-        kButtonSetGrayscale, image_processor_manager, *active_command_history,
-        app_context);
-    gui::renderBlurWithSlider(image_processor_manager, *active_command_history,
-                              app_context.blur_intensity, app_context);
-    gui::renderFilterButton<image::decorator::SepiaDecorator>(
-        kButtonSetSepia, image_processor_manager, *active_command_history,
-        app_context);
-    gui::renderFilterButton<image::decorator::EdgeDetectionDecorator>(
-        kButtonSetEdgeDetection, image_processor_manager,
-        *active_command_history, app_context);
-
-    if (image_processor_manager.HasActiveFilters()) {
-      renderActiveFiltersList(image_processor_manager, *active_command_history);
-    }
+    renderFilterButtons(image_processor_manager, *active_command_history,
+                        app_context);
   }
 
   if (active_command_history) {
