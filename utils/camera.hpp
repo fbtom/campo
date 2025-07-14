@@ -23,6 +23,7 @@
 #include <imgui.h>
 
 // Project headers
+#include "application/detections/detection_algorithms.hpp"
 #include "application/image/history/command_history.hpp"
 #include "application/image/image_process/image_processor_manager.hpp"
 #include "application/image/region/region_selector.hpp"
@@ -34,10 +35,10 @@ namespace utils {
 struct CameraData;
 
 struct CameraData {
-  int id;
-  cv::VideoCapture capture;
-  cv::Mat frame;
-  GLuint texture_id{0}; 
+  int id{};
+  cv::VideoCapture capture{};
+  cv::Mat frame{};
+  GLuint texture_id{0};
   bool is_available{false};
   std::unique_ptr<image::process::ImageProcessorManager> processor_manager{
       nullptr};
@@ -53,7 +54,14 @@ struct AppContext {
   std::unique_ptr<image::process::ImageProcessorManager>
       image_processor_manager_ptr{nullptr};
   std::unique_ptr<image::region::RegionSelector> region_selector_ptr{nullptr};
-  int blur_intensity = 1;
+  int blur_intensity{1};
+
+  campo::detections::DetectionAlgorithm selectedDetectionAlgorithm{
+      campo::detections::DetectionAlgorithm::GEOMETRIC_SHAPES};
+  bool detectionEnabled{false};
+  bool detectionSettingsLocked{false};
+  std::vector<cv::Rect> detectionResults;
+  int detectedObjectsCount{0};
 };
 
 /// @brief Get a list of available camera IDs.
@@ -80,6 +88,7 @@ void refreshCameraList(std::vector<CameraData> &container,
 /// @return std::vector<common::CameraStream> containing camera information.
 std::vector<common::CameraStream>
 processCameraFrames(std::vector<utils::CameraData> &cameras,
-                    std::optional<int> selected_camera_id = std::nullopt);
+                    std::optional<int> selected_camera_id = std::nullopt,
+                    AppContext *app_context = nullptr);
 
 } // namespace utils
