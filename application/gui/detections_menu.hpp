@@ -4,6 +4,7 @@
 #include "detection_algorithms.hpp"
 #include <imgui.h>
 #include <memory>
+#include <opencv2/opencv.hpp>
 
 namespace campo {
 namespace gui {
@@ -15,6 +16,31 @@ inline void enableDetection(utils::AppContext &app_context) {
       app_context.detectionSettingsLocked = true;
     } else if (!app_context.detectionEnabled && wasEnabled) {
       app_context.detectionSettingsLocked = false;
+      app_context.detectionResults.clear();
+      app_context.detectedObjectsCount = 0;
+    }
+  }
+}
+
+inline void runDetectionOnFrame(utils::AppContext &app_context) {
+  if (!app_context.detectionEnabled) {
+    return;
+  }
+
+  if (app_context.cameras_ptr && app_context.current_id_ptr) {
+    int current_camera_id = *app_context.current_id_ptr;
+
+    for (auto &camera : *app_context.cameras_ptr) {
+      if (camera.id == current_camera_id && camera.is_available &&
+          !camera.frame.empty()) {
+        auto detector = campo::detections::createDetector(
+            static_cast<campo::detections::DetectionAlgorithm>(
+                app_context.selectedDetectionAlgorithm));
+
+        detector->detect(camera.frame, app_context.detectionResults);
+        app_context.detectedObjectsCount = app_context.detectionResults.size();
+        break;
+      }
     }
   }
 }
@@ -43,15 +69,10 @@ inline void showDetectionsMenu(utils::AppContext &app_context) {
   }
 
   if (app_context.detectionEnabled) {
-    if (ImGui::Button("Run Detection",
-                      ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
-      auto detector = campo::detections::createDetector(
-          static_cast<campo::detections::DetectionAlgorithm>(
-              app_context.selectedDetectionAlgorithm));
+    ImGui::Text("Detection Status: Active");
 
-      // TODO: Get current image from camera/processor and run detection
-      ImGui::OpenPopup("Detection Results");
-    }
+  } else {
+    ImGui::Text("Detection Status: Disabled");
   }
 }
 

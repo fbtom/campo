@@ -4,7 +4,7 @@ namespace campo {
 namespace detections {
 
 enum class DetectionAlgorithm {
-    GEOMETRIC_SHAPES,
+  GEOMETRIC_SHAPES,
 };
 
 } // namespace detections

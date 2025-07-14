@@ -58,6 +58,8 @@ struct AppContext {
   int selectedDetectionAlgorithm = 0;
   bool detectionEnabled = false;
   bool detectionSettingsLocked = false;
+  std::vector<cv::Rect> detectionResults;
+  int detectedObjectsCount = 0;
 };
 
 /// @brief Get a list of available camera IDs.
@@ -84,6 +86,7 @@ void refreshCameraList(std::vector<CameraData> &container,
 /// @return std::vector<common::CameraStream> containing camera information.
 std::vector<common::CameraStream>
 processCameraFrames(std::vector<utils::CameraData> &cameras,
-                    std::optional<int> selected_camera_id = std::nullopt);
+                    std::optional<int> selected_camera_id = std::nullopt,
+                    AppContext* app_context = nullptr);
 
 } // namespace utils
