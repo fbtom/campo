@@ -24,6 +24,7 @@
 #include "application/gui/gui_utils.hpp"
 #include "application/gui/menu.hpp"
 #include "application/image/image_process/image_processor_manager.hpp"
+#include "application/image/region/region_selector.hpp"
 #include "common/camera_stream.hpp"
 #include "utils/callback_handler.hpp"
 #include "utils/camera.hpp"
@@ -47,17 +48,20 @@ int main() {
   int current_id{0};
 
   utils::AppContext app_context{};
-  app_context.cameras_ptr = &cameras;
-  app_context.current_id_ptr = &current_id;
+  app_context.cameras_ptr =
+      std::make_unique<std::vector<utils::CameraData>>(std::move(cameras));
+  app_context.current_id_ptr = std::make_unique<int>(current_id);
   glfwSetWindowUserPointer(window, &app_context);
 
-  image::history::CommandHistory command_history;
-  image::process::ImageProcessorManager image_processor_manager;
-  app_context.command_history_ptr = &command_history;
-  app_context.image_processor_manager_ptr = &image_processor_manager;
+  app_context.command_history_ptr =
+      std::make_unique<image::history::CommandHistory>();
+  app_context.image_processor_manager_ptr =
+      std::make_unique<image::process::ImageProcessorManager>();
+  app_context.region_selector_ptr =
+      std::make_unique<image::region::RegionSelector>();
 
   auto initial_camera_ids = utils::getCameraIDs();
-  utils::refreshCameraList(cameras, initial_camera_ids);
+  utils::refreshCameraList(*app_context.cameras_ptr, initial_camera_ids);
   current_id =
       utils::getValidCameraID(initial_camera_ids, utils::loadCameraID());
 
@@ -71,7 +75,7 @@ int main() {
                                   : grid_display.GetSelectedCameraId();
 
     std::vector<common::CameraStream> current_camera_streams{
-        utils::processCameraFrames(cameras, selected_camera)};
+        utils::processCameraFrames(*app_context.cameras_ptr, selected_camera)};
 
     grid_display.SetCameraData(current_camera_streams);
 

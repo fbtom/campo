@@ -10,6 +10,7 @@
 #pragma once
 
 #include "application/camera_view/camera_view_adapter.hpp"
+#include "application/image/region/region_selector.hpp"
 #include "common/camera_stream.hpp"
 #include "gui_utils.hpp"
 #include "imgui.h"
@@ -40,7 +41,10 @@ public:
     return adapter_.GetSelectedCameraId();
   }
 
-  std::optional<int> RenderGrid() { return adapter_.RenderView(); }
+  std::optional<int>
+  RenderGrid(image::region::RegionSelector *region_selector = nullptr) {
+    return adapter_.RenderView(region_selector);
+  }
 };
 
 } // namespace gui

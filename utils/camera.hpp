@@ -12,6 +12,7 @@
 // System headers
 #include <cstdio>
 #include <fstream>
+#include <memory>
 #include <optional>
 #include <vector>
 
@@ -24,6 +25,7 @@
 // Project headers
 #include "application/image/history/command_history.hpp"
 #include "application/image/image_process/image_processor_manager.hpp"
+#include "application/image/region/region_selector.hpp"
 #include "common/camera_stream.hpp"
 #include "utils/conversions.hpp"
 
@@ -43,10 +45,12 @@ struct CameraData {
 };
 
 struct AppContext {
-  std::vector<CameraData> *cameras_ptr;
-  int *current_id_ptr;
-  image::history::CommandHistory *command_history_ptr;
-  image::process::ImageProcessorManager *image_processor_manager_ptr;
+  std::unique_ptr<std::vector<CameraData>> cameras_ptr{nullptr};
+  std::unique_ptr<int> current_id_ptr{nullptr};
+  std::unique_ptr<image::history::CommandHistory> command_history_ptr{nullptr};
+  std::unique_ptr<image::process::ImageProcessorManager>
+      image_processor_manager_ptr{nullptr};
+  std::unique_ptr<image::region::RegionSelector> region_selector_ptr{nullptr};
   int blur_intensity = 1;
 };
 

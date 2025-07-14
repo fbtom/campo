@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "application/image/region/region_selector.hpp"
 #include "camera_types.hpp"
 #include "camera_utils.hpp"
 #include <optional>
@@ -28,8 +29,10 @@ public:
 
   void SetCameraData(const std::vector<common::CameraStream> &streams);
   void SetSelectedCamera(int index);
-  
-  std::optional<int> Render(const ImVec2 &available_region_size);
+
+  std::optional<int>
+  Render(const ImVec2 &available_region_size,
+         image::region::RegionSelector *region_selector = nullptr);
   std::optional<int> GetSelectedCameraIndex() const;
   std::optional<int> GetSelectedCameraId() const;
 };

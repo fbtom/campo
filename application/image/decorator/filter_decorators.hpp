@@ -12,14 +12,30 @@
 #include "application/image/image_process/image_processor.hpp"
 #include "opencv2/opencv.hpp"
 #include <memory>
+#include <optional>
 
 namespace image {
 namespace decorator {
 
 class FilterDecorator : public ImageProcessor {
   virtual void Decorate(cv::Mat &frame) = 0;
+  void DecorateRegion(cv::Mat &frame,
+                      std::optional<cv::Rect> region_opt = std::nullopt) {
+    if (!region_opt.has_value()) {
+      Decorate(frame);
+      return;
+    }
+    auto region = region_opt.value();
+    if (region.x >= 0 && region.y >= 0 &&
+        region.x + region.width <= frame.cols &&
+        region.y + region.height <= frame.rows) {
+      cv::Mat region_mat = frame(region);
+      Decorate(region_mat);
+    }
+  }
 
   std::unique_ptr<ImageProcessor> image_processor_;
+  std::optional<cv::Rect> processing_region_;
 
 public:
   FilterDecorator(std::unique_ptr<ImageProcessor> processor)
@@ -29,7 +45,16 @@ public:
     if (image_processor_) {
       image_processor_->Process(frame);
     }
-    Decorate(frame);
+
+    DecorateRegion(frame, processing_region_);
+  }
+
+  void SetProcessingRegion(const std::optional<cv::Rect> &region) {
+    processing_region_ = region;
+  }
+
+  std::optional<cv::Rect> GetProcessingRegion() const {
+    return processing_region_;
   }
 
   virtual std::string GetFilterName() const = 0;
@@ -82,12 +107,9 @@ public:
 
 class SepiaDecorator : public FilterDecorator {
   void Decorate(cv::Mat &frame) override {
-    cv::Mat sepia_frame;
-    frame.copyTo(sepia_frame);
-
-    for (int y = 0; y < sepia_frame.rows; y++) {
-      for (int x = 0; x < sepia_frame.cols; x++) {
-        cv::Vec3b &pixel = sepia_frame.at<cv::Vec3b>(y, x);
+    for (int y = 0; y < frame.rows; y++) {
+      for (int x = 0; x < frame.cols; x++) {
+        cv::Vec3b &pixel = frame.at<cv::Vec3b>(y, x);
         float b = pixel[0];
         float g = pixel[1];
         float r = pixel[2];
@@ -100,7 +122,6 @@ class SepiaDecorator : public FilterDecorator {
             cv::saturate_cast<uchar>(0.393 * r + 0.769 * g + 0.189 * b); // R
       }
     }
-    frame = sepia_frame;
   }
 
 public:

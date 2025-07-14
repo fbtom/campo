@@ -20,9 +20,8 @@ std::vector<common::CameraStream> CameraViewAdapter::ConvertStreamFormat(
   std::vector<common::CameraStream> new_streams;
 
   for (const auto &old_stream : old_streams) {
-    new_streams.push_back(
-        {old_stream.texture_id,
-         old_stream.width, old_stream.height, old_stream.original_id});
+    new_streams.push_back({old_stream.texture_id, old_stream.width,
+                           old_stream.height, old_stream.original_id});
   }
 
   return new_streams;
@@ -34,8 +33,9 @@ void CameraViewAdapter::SetCameraData(
   controller_.SetCameraData(converted_streams);
 }
 
-std::optional<int> CameraViewAdapter::RenderView() {
-  return controller_.RenderView();
+std::optional<int>
+CameraViewAdapter::RenderView(image::region::RegionSelector *region_selector) {
+  return controller_.RenderView(region_selector);
 }
 
 bool CameraViewAdapter::RenderReturnButton() {

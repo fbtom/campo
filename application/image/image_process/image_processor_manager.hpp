@@ -14,6 +14,7 @@
 #include "opencv2/opencv.hpp"
 #include <algorithm>
 #include <memory>
+#include <optional>
 #include <vector>
 
 namespace image {
@@ -34,7 +35,30 @@ public:
 
   void AddFilter(std::unique_ptr<decorator::FilterDecorator> filter) {
     if (filter) {
+      if (default_region_.has_value()) {
+        filter->SetProcessingRegion(default_region_);
+      }
       filters_.push_back(std::move(filter));
+    }
+  }
+
+  void AddFilter(std::unique_ptr<decorator::FilterDecorator> filter,
+                 const std::optional<cv::Rect> &region) {
+    if (filter) {
+      filter->SetProcessingRegion(region);
+      filters_.push_back(std::move(filter));
+    }
+  }
+
+  void SetDefaultRegion(const std::optional<cv::Rect> &region) {
+    default_region_ = region;
+  }
+
+  void SetProcessingRegion(const std::optional<cv::Rect> &region) {
+    for (auto &filter : filters_) {
+      if (filter) {
+        filter->SetProcessingRegion(region);
+      }
     }
   }
 
@@ -68,6 +92,7 @@ public:
 private:
   std::unique_ptr<ImageProcessor> base_processor_;
   std::vector<std::unique_ptr<decorator::FilterDecorator>> filters_;
+  std::optional<cv::Rect> default_region_;
 };
 
 } // namespace process
