@@ -54,6 +54,10 @@ struct AppContext {
       image_processor_manager_ptr{nullptr};
   std::unique_ptr<image::region::RegionSelector> region_selector_ptr{nullptr};
   int blur_intensity = 1;
+
+  int selectedDetectionAlgorithm = 0;
+  bool detectionEnabled = false;
+  bool detectionSettingsLocked = false;
 };
 
 /// @brief Get a list of available camera IDs.
