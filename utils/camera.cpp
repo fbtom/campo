@@ -9,6 +9,8 @@
 
 #include "utils/camera.hpp"
 #include "application/image/image_process/image_processor_manager.hpp"
+#include "application/gui/detections_menu.hpp"
+#include "application/gui/detection_visualization.hpp"
 #include <GLFW/glfw3.h>
 
 namespace utils {
@@ -84,7 +86,8 @@ void updateCameraTexture(CameraData &camera) {
 
 std::vector<common::CameraStream>
 processCameraFrames(std::vector<utils::CameraData> &cameras,
-                    std::optional<int> selected_camera_id) {
+                    std::optional<int> selected_camera_id,
+                    utils::AppContext* app_context) {
   auto camera_streams = std::vector<common::CameraStream>{};
 
   // When in single camera view, only process the selected camera
@@ -98,6 +101,12 @@ processCameraFrames(std::vector<utils::CameraData> &cameras,
           if (camera.processor_manager) {
             camera.processor_manager->processFrame(camera.frame);
           }
+          
+          if (app_context && app_context->detectionEnabled) {
+            campo::gui::runDetectionOnFrame(*app_context);
+            campo::gui::drawDetectionResults(camera.frame, *app_context);
+          }
+          
           updateCameraTexture(camera);
           camera_streams.push_back({static_cast<ImTextureID>(camera.texture_id),
                                     camera.frame.cols, camera.frame.rows,
