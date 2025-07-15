@@ -1,7 +1,7 @@
 ///
 /// @file panel_renderer.hpp
 /// @author fbtom
-/// @brief 
+/// @brief
 /// @date 2025-07-14
 ///
 /// @copyright Copyright (c) 2025
@@ -10,6 +10,7 @@
 #pragma once
 
 #include "camera_menu.hpp"
+#include "detections_menu.hpp"
 #include "filter_menu.hpp"
 #include "grid_display.hpp"
 #include "menu_bar.hpp"
@@ -38,6 +39,10 @@ void renderLeftPanel(GLFWwindow *window, utils::AppContext &app_context,
   }
 
   filter_menu::renderEffectsMenu(app_context, grid_display.IsGridView());
+
+  if (!grid_display.IsGridView()) {
+    campo::gui::showDetectionsMenu(app_context);
+  }
 
   ImGui::SetCursorPosY(ImGui::GetWindowHeight() - 32);
   ImGui::Separator();
