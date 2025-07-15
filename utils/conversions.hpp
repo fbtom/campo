@@ -36,4 +36,16 @@ inline GLuint cvMatToTexture(cv::Mat &mat) {
   return textureId;
 }
 
+inline void updateTextureData(GLuint textureId, cv::Mat &mat) {
+  if (textureId == 0) return;
+  
+  glBindTexture(GL_TEXTURE_2D, textureId);
+  
+  cv::cvtColor(mat, mat, cv::COLOR_BGR2RGB);
+  
+  // Update texture with no relocation
+  glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, mat.cols, mat.rows, 
+                  GL_RGB, GL_UNSIGNED_BYTE, mat.data);
+}
+
 } // namespace utils

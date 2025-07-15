@@ -37,11 +37,13 @@ struct CameraData {
   int id;
   cv::VideoCapture capture;
   cv::Mat frame;
-  GLuint texture_id;
+  GLuint texture_id{0}; 
   bool is_available{false};
   std::unique_ptr<image::process::ImageProcessorManager> processor_manager{
       nullptr};
   std::unique_ptr<image::history::CommandHistory> command_history{nullptr};
+  int last_frame_width{0};
+  int last_frame_height{0};
 };
 
 struct AppContext {

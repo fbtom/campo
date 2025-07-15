@@ -1,5 +1,5 @@
 ///
-/// @file main.cpp
+/// @file camera.cpp
 /// @author fbtom
 /// @brief
 /// @date 2025-05-08
@@ -65,6 +65,23 @@ void refreshCameraList(std::vector<CameraData> &container,
   }
 }
 
+void updateCameraTexture(CameraData &camera) {
+  bool need_new_texture = (camera.texture_id == 0) ||
+                          (camera.frame.cols != camera.last_frame_width) ||
+                          (camera.frame.rows != camera.last_frame_height);
+
+  if (need_new_texture) {
+    if (camera.texture_id != 0) {
+      glDeleteTextures(1, &camera.texture_id);
+    }
+    camera.texture_id = cvMatToTexture(camera.frame);
+    camera.last_frame_width = camera.frame.cols;
+    camera.last_frame_height = camera.frame.rows;
+  } else {
+    updateTextureData(camera.texture_id, camera.frame);
+  }
+}
+
 std::vector<common::CameraStream>
 processCameraFrames(std::vector<utils::CameraData> &cameras,
                     std::optional<int> selected_camera_id) {
@@ -81,11 +98,7 @@ processCameraFrames(std::vector<utils::CameraData> &cameras,
           if (camera.processor_manager) {
             camera.processor_manager->processFrame(camera.frame);
           }
-
-          if (camera.texture_id != 0) {
-            glDeleteTextures(1, &camera.texture_id);
-          }
-          camera.texture_id = utils::cvMatToTexture(camera.frame);
+          updateCameraTexture(camera);
           camera_streams.push_back({static_cast<ImTextureID>(camera.texture_id),
                                     camera.frame.cols, camera.frame.rows,
                                     camera.id});
@@ -111,11 +124,7 @@ processCameraFrames(std::vector<utils::CameraData> &cameras,
           if (camera.processor_manager) {
             camera.processor_manager->processFrame(camera.frame);
           }
-
-          if (camera.texture_id != 0) {
-            glDeleteTextures(1, &camera.texture_id);
-          }
-          camera.texture_id = utils::cvMatToTexture(camera.frame);
+          updateCameraTexture(camera);
           camera_streams.push_back({static_cast<ImTextureID>(camera.texture_id),
                                     camera.frame.cols, camera.frame.rows,
                                     camera.id});
