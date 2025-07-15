@@ -34,10 +34,10 @@ namespace utils {
 struct CameraData;
 
 struct CameraData {
-  int id;
-  cv::VideoCapture capture;
-  cv::Mat frame;
-  GLuint texture_id{0}; 
+  int id{};
+  cv::VideoCapture capture{};
+  cv::Mat frame{};
+  GLuint texture_id{0};
   bool is_available{false};
   std::unique_ptr<image::process::ImageProcessorManager> processor_manager{
       nullptr};
