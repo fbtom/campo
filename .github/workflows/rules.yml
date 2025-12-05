@@ -16,10 +16,3 @@ jobs:
 
       - name: Check for newline at end of files
         run: python3 .github/workflows/scripts/newline.py
-      
-      - name: Run clang-format style check for 
-        uses: jidicula/clang-format-action@v4.16.0
-        with:
-          clang-format-version: '13'
-          check-path: '.'
-          fallback-style: 'Google'
