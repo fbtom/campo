@@ -1,7 +1,7 @@
 ///
 /// @file grid_display.hpp
 /// @author fbtom
-/// @brief Grid display for camera view - Adapter to new camera view module
+/// @brief 
 /// @date 2025-05-08
 ///
 /// @copyright Copyright (c) 2025

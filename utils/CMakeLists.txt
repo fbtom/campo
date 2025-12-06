@@ -5,7 +5,7 @@ target_sources(utils PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/frame.hpp
 )
 
-target_link_libraries(utils PUBLIC gui nlohmann_json::nlohmann_json glfw common) 
+target_link_libraries(utils PUBLIC gui nlohmann_json::nlohmann_json glfw common detections) 
 
 target_include_directories(utils PUBLIC 
     ${CMAKE_SOURCE_DIR}
