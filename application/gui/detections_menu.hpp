@@ -1,9 +1,7 @@
 #pragma once
 #include "../../utils/camera.hpp"
-#include "../detections/detection_factory.hpp"
-#include "detection_algorithms.hpp"
+#include "../detections/detection_algorithms.hpp"
 #include <imgui.h>
-#include <memory>
 #include <opencv2/opencv.hpp>
 
 namespace campo {
@@ -33,10 +31,10 @@ inline void runDetectionOnFrame(utils::AppContext &app_context) {
     for (auto &camera : *app_context.cameras_ptr) {
       if (camera.id == current_camera_id && camera.is_available &&
           !camera.frame.empty()) {
-        auto detector = campo::detections::createDetector(
+        auto detector = campo::detections::getDetectionAlgorithm(
             app_context.selectedDetectionAlgorithm);
 
-        detector->detect(camera.frame, app_context.detectionResults);
+        app_context.detectionResults = detector(camera.frame);
         app_context.detectedObjectsCount = app_context.detectionResults.size();
         break;
       }

@@ -23,6 +23,7 @@
 #include <imgui.h>
 
 // Project headers
+#include "application/detections/detection_algorithms.hpp"
 #include "application/image/history/command_history.hpp"
 #include "application/image/image_process/image_processor_manager.hpp"
 #include "application/image/region/region_selector.hpp"
