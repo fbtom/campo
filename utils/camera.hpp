@@ -55,7 +55,7 @@ struct AppContext {
   std::unique_ptr<image::region::RegionSelector> region_selector_ptr{nullptr};
   int blur_intensity = 1;
 
-  int selectedDetectionAlgorithm = 0;
+  campo::detections::DetectionAlgorithm selectedDetectionAlgorithm = campo::detections::DetectionAlgorithm::GEOMETRIC_SHAPES;
   bool detectionEnabled = false;
   bool detectionSettingsLocked = false;
   std::vector<cv::Rect> detectionResults;

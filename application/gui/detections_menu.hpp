@@ -34,8 +34,7 @@ inline void runDetectionOnFrame(utils::AppContext &app_context) {
       if (camera.id == current_camera_id && camera.is_available &&
           !camera.frame.empty()) {
         auto detector = campo::detections::createDetector(
-            static_cast<campo::detections::DetectionAlgorithm>(
-                app_context.selectedDetectionAlgorithm));
+            app_context.selectedDetectionAlgorithm);
 
         detector->detect(camera.frame, app_context.detectionResults);
         app_context.detectedObjectsCount = app_context.detectionResults.size();
@@ -52,15 +51,16 @@ inline void showDetectionsMenu(utils::AppContext &app_context) {
   enableDetection(app_context);
 
   if (!app_context.detectionSettingsLocked) {
-    int current = app_context.selectedDetectionAlgorithm;
+    int current = static_cast<int>(app_context.selectedDetectionAlgorithm);
     const char *items[] = {"Geometric shapes"};
     if (ImGui::Combo("Algorithm", &current, items, IM_ARRAYSIZE(items))) {
-      app_context.selectedDetectionAlgorithm = current;
+      app_context.selectedDetectionAlgorithm =
+          static_cast<campo::detections::DetectionAlgorithm>(current);
     }
   } else {
     const char *items[] = {"Geometric shapes"};
     ImGui::BeginDisabled();
-    int current = app_context.selectedDetectionAlgorithm;
+    int current = static_cast<int>(app_context.selectedDetectionAlgorithm);
     ImGui::Combo("Algorithm", &current, items, IM_ARRAYSIZE(items));
     ImGui::EndDisabled();
     ImGui::SameLine();
