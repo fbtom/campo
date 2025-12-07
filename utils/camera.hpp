@@ -87,8 +87,7 @@ void refreshCameraList(std::vector<CameraData> &container,
 /// (when in single camera view).
 /// @return std::vector<common::CameraStream> containing camera information.
 std::vector<common::CameraStream>
-processCameraFrames(std::vector<utils::CameraData> &cameras,
-                    std::optional<int> selected_camera_id = std::nullopt,
+processCameraFrames(std::optional<int> selected_camera_id = std::nullopt,
                     AppContext *app_context = nullptr);
 
 void initializeAppContext(utils::AppContext &app_context, GLFWwindow *window,

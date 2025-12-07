@@ -16,8 +16,8 @@
 namespace utils {
 
 auto getCameraIDs() -> std::vector<int> {
-  std::vector<int> ids;
-  cv::VideoCapture cap;
+  std::vector<int> ids{};
+  cv::VideoCapture cap{};
   for (int i = 0; i < 10; ++i) {
     if (cap.open(i)) {
       ids.push_back(i);
@@ -85,10 +85,10 @@ void updateCameraTexture(CameraData &camera) {
 }
 
 std::vector<common::CameraStream>
-processCameraFrames(std::vector<utils::CameraData> &cameras,
-                    std::optional<int> selected_camera_id,
+processCameraFrames(std::optional<int> selected_camera_id,
                     utils::AppContext *app_context) {
   auto camera_streams = std::vector<common::CameraStream>{};
+  auto &cameras = *app_context->cameras_ptr;
 
   // When in single camera view, only process the selected camera
   if (selected_camera_id.has_value()) {
