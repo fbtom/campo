@@ -35,6 +35,7 @@
 
 using std::cerr;
 
+
 int main() {
   if (!glfwInit()) {
     return -1;
@@ -48,17 +49,7 @@ int main() {
   int current_id{0};
 
   utils::AppContext app_context{};
-  app_context.cameras_ptr =
-      std::make_unique<std::vector<utils::CameraData>>(std::move(cameras));
-  app_context.current_id_ptr = std::make_unique<int>(current_id);
-  glfwSetWindowUserPointer(window, &app_context);
-
-  app_context.command_history_ptr =
-      std::make_unique<image::history::CommandHistory>();
-  app_context.image_processor_manager_ptr =
-      std::make_unique<image::process::ImageProcessorManager>();
-  app_context.region_selector_ptr =
-      std::make_unique<image::region::RegionSelector>();
+  utils::initializeAppContext(app_context, window, std::move(cameras), current_id);
 
   auto initial_camera_ids = utils::getCameraIDs();
   utils::refreshCameraList(*app_context.cameras_ptr, initial_camera_ids);
@@ -75,7 +66,8 @@ int main() {
                                   : grid_display.GetSelectedCameraId();
 
     std::vector<common::CameraStream> current_camera_streams{
-        utils::processCameraFrames(*app_context.cameras_ptr, selected_camera, &app_context)};
+        utils::processCameraFrames(*app_context.cameras_ptr, selected_camera,
+                                   &app_context)};
 
     grid_display.SetCameraData(current_camera_streams);
 

@@ -8,9 +8,9 @@
 ///
 
 #include "utils/camera.hpp"
-#include "application/image/image_process/image_processor_manager.hpp"
-#include "application/gui/detections_menu.hpp"
 #include "application/gui/detection_visualization.hpp"
+#include "application/gui/detections_menu.hpp"
+#include "application/image/image_process/image_processor_manager.hpp"
 #include <GLFW/glfw3.h>
 
 namespace utils {
@@ -87,7 +87,7 @@ void updateCameraTexture(CameraData &camera) {
 std::vector<common::CameraStream>
 processCameraFrames(std::vector<utils::CameraData> &cameras,
                     std::optional<int> selected_camera_id,
-                    utils::AppContext* app_context) {
+                    utils::AppContext *app_context) {
   auto camera_streams = std::vector<common::CameraStream>{};
 
   // When in single camera view, only process the selected camera
@@ -101,12 +101,12 @@ processCameraFrames(std::vector<utils::CameraData> &cameras,
           if (camera.processor_manager) {
             camera.processor_manager->processFrame(camera.frame);
           }
-          
-          if (app_context && app_context->detectionEnabled) {
+
+          if (app_context && app_context->detection_enabled) {
             campo::gui::runDetectionOnFrame(*app_context);
             campo::gui::drawDetectionResults(camera.frame, *app_context);
           }
-          
+
           updateCameraTexture(camera);
           camera_streams.push_back({static_cast<ImTextureID>(camera.texture_id),
                                     camera.frame.cols, camera.frame.rows,
@@ -143,6 +143,21 @@ processCameraFrames(std::vector<utils::CameraData> &cameras,
   }
 
   return camera_streams;
+}
+
+void initializeAppContext(utils::AppContext &app_context, GLFWwindow *window,
+                          std::vector<utils::CameraData> &&cameras,
+                          int current_id) {
+  app_context.cameras_ptr =
+      std::make_unique<std::vector<utils::CameraData>>(std::move(cameras));
+  app_context.current_id_ptr = std::make_unique<int>(current_id);
+  glfwSetWindowUserPointer(window, &app_context);
+  app_context.command_history_ptr =
+      std::make_unique<image::history::CommandHistory>();
+  app_context.image_processor_manager_ptr =
+      std::make_unique<image::process::ImageProcessorManager>();
+  app_context.region_selector_ptr =
+      std::make_unique<image::region::RegionSelector>();
 }
 
 } // namespace utils

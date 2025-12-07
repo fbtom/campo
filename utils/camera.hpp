@@ -56,12 +56,12 @@ struct AppContext {
   std::unique_ptr<image::region::RegionSelector> region_selector_ptr{nullptr};
   int blur_intensity{1};
 
-  campo::detections::DetectionAlgorithm selectedDetectionAlgorithm{
+  campo::detections::DetectionAlgorithm selected_detection_algorithm{
       campo::detections::DetectionAlgorithm::GEOMETRIC_SHAPES};
-  bool detectionEnabled{false};
-  bool detectionSettingsLocked{false};
-  std::vector<cv::Rect> detectionResults;
-  int detectedObjectsCount{0};
+  bool detection_enabled{false};
+  bool detection_settings_locked{false};
+  std::vector<cv::Rect> detection_results{};
+  int detected_objects_count{0};
 };
 
 /// @brief Get a list of available camera IDs.
@@ -90,5 +90,9 @@ std::vector<common::CameraStream>
 processCameraFrames(std::vector<utils::CameraData> &cameras,
                     std::optional<int> selected_camera_id = std::nullopt,
                     AppContext *app_context = nullptr);
+
+void initializeAppContext(utils::AppContext &app_context, GLFWwindow *window,
+                          std::vector<utils::CameraData> &&cameras,
+                          int current_id);
 
 } // namespace utils

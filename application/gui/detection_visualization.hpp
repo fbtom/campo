@@ -19,7 +19,7 @@ std::map<fontColor, cv::Scalar> kFontColorMap{
 
 inline void drawDetectionResults(cv::Mat &frame,
                                  const utils::AppContext &app_context) {
-  if (!app_context.detectionEnabled || app_context.detectionResults.empty()) {
+  if (!app_context.detection_enabled || app_context.detection_results.empty()) {
     return;
   }
   const int fontFace = cv::FONT_HERSHEY_SIMPLEX;
@@ -30,8 +30,8 @@ inline void drawDetectionResults(cv::Mat &frame,
       fontColor::GREEN, fontColor::BLUE,    fontColor::RED,
       fontColor::CYAN,  fontColor::MAGENTA, fontColor::YELLOW};
 
-  for (size_t i = 0; i < app_context.detectionResults.size(); ++i) {
-    const auto &rect = app_context.detectionResults[i];
+  for (size_t i = 0; i < app_context.detection_results.size(); ++i) {
+    const auto &rect = app_context.detection_results[i];
 
     cv::Scalar color = kFontColorMap.at(colors[i % colors.size()]);
 
@@ -55,9 +55,9 @@ inline void drawDetectionResults(cv::Mat &frame,
     cv::putText(frame, label, textOrg, fontFace, fontScale, color, thickness);
   }
 
-  if (app_context.detectionEnabled) {
+  if (app_context.detection_enabled) {
     std::string info =
-        "No. objects: " + std::to_string(app_context.detectedObjectsCount);
+        "No. objects: " + std::to_string(app_context.detected_objects_count);
     cv::putText(frame, info, cv::Point(10, 25), fontFace, fontScale,
                 kFontColorMap.at(fontColor::GREEN), thickness);
   }
