@@ -85,32 +85,35 @@ void updateCameraTexture(CameraData &camera) {
 }
 
 std::vector<common::CameraStream>
-processCameraFrames(std::optional<int> selected_camera_id,
-                    utils::AppContext *app_context) {
+processCameraFrames(utils::AppContext *app_context,
+                    std::optional<int> selected_camera_id) {
   auto camera_streams = std::vector<common::CameraStream>{};
   auto &cameras = *app_context->cameras_ptr;
 
   // When in single camera view, only process the selected camera
   if (selected_camera_id.has_value()) {
     for (auto &camera : cameras) {
+      auto &frame = camera.frame;
       if (camera.is_available && camera.id == selected_camera_id.value()) {
         camera.capture.set(cv::CAP_PROP_FPS, 60);
-        camera.capture >> camera.frame;
+        camera.capture >> frame;
 
-        if (!camera.frame.empty()) {
+        if (!frame.empty()) {
           if (camera.processor_manager) {
-            camera.processor_manager->processFrame(camera.frame);
+            camera.processor_manager->processFrame(frame);
           }
 
           if (app_context && app_context->detection_enabled) {
             campo::gui::runDetectionOnFrame(*app_context);
-            campo::gui::drawDetectionResults(camera.frame, *app_context);
+            // TODO implement detection tracking across frames
+            // requires comparison between previous and current detected ids
+            // based on centroids or bounding boxes positions
+            campo::gui::drawDetectionResults(frame, *app_context);
           }
 
           updateCameraTexture(camera);
           camera_streams.push_back({static_cast<ImTextureID>(camera.texture_id),
-                                    camera.frame.cols, camera.frame.rows,
-                                    camera.id});
+                                    frame.cols, frame.rows, camera.id});
         }
         break;
       } else {

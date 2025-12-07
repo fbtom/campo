@@ -45,16 +45,15 @@ int main() {
 
   std::vector<utils::CameraData> cameras{};
   gui::GridDisplay grid_display{};
-  int current_id{0};
+  auto initial_camera_ids = utils::getCameraIDs();
+  int current_id{
+      utils::getValidCameraID(initial_camera_ids, utils::loadCameraID())};
 
   utils::AppContext app_context{};
   utils::initializeAppContext(app_context, window, std::move(cameras),
                               current_id);
 
-  auto initial_camera_ids = utils::getCameraIDs();
   utils::refreshCameraList(*app_context.cameras_ptr, initial_camera_ids);
-  current_id =
-      utils::getValidCameraID(initial_camera_ids, utils::loadCameraID());
 
   glfwSetKeyCallback(window, utils::mainWindowCallback);
 
@@ -66,7 +65,7 @@ int main() {
                                   : grid_display.GetSelectedCameraId();
 
     std::vector<common::CameraStream> current_camera_streams{
-        utils::processCameraFrames(selected_camera, &app_context)};
+        utils::processCameraFrames(&app_context, selected_camera)};
 
     grid_display.SetCameraData(current_camera_streams);
 
