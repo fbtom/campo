@@ -89,8 +89,9 @@ void renderGui(GLFWwindow *window, utils::AppContext &app_context,
   auto frame = getFrameBuffer(window);
   setWindowProperties(frame);
 
-  ImGui::Begin(kApplicationName, &app_context.is_running,
-               ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+  auto flags = 0x0 << ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+               ImGuiWindowFlags_NoCollapse;
+  ImGui::Begin(kApplicationName, &app_context.is_running, flags);
 
   {
     renderLeftPanel(window, app_context, grid_display);
