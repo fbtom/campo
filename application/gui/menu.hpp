@@ -9,17 +9,18 @@
 
 #pragma once
 
+#include "glfw/utils.hpp"
 #include "grid_display.hpp"
+#include "gui_utils.hpp"
 #include "panel_renderer.hpp"
 #include "utils/frame.hpp"
-#include "gui_utils.hpp"
-#include <imgui.h>
 #include <GLFW/glfw3.h>
+#include <imgui.h>
 
 // Forward declarations
 extern void ImGui_ImplOpenGL3_NewFrame();
 extern void ImGui_ImplGlfw_NewFrame();
-extern void ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data);
+extern void ImGui_ImplOpenGL3_RenderDrawData(ImDrawData *draw_data);
 
 namespace gui {
 
@@ -67,6 +68,15 @@ void initNewFrame() {
   ImGui::NewFrame();
 }
 
+void setWindowProperties(utils::Frame &frame) {
+
+  const auto main_window_size{ImVec2(frame.width, frame.height)};
+  const auto main_window_pos{ImVec2(kWindowPosX, kWindowPosY)};
+
+  ImGui::SetNextWindowSize(main_window_size);
+  ImGui::SetNextWindowPos(main_window_pos);
+}
+
 /// @brief Renders the entire GUI, including both left and right panels.
 /// @param window Pointer to the GLFW window.
 /// @param app_context Application context containing camera and state
@@ -76,14 +86,8 @@ void renderGui(GLFWwindow *window, utils::AppContext &app_context,
                GridDisplay &grid_display) {
   initNewFrame();
 
-  utils::Frame frame{};
-  glfwGetFramebufferSize(window, &frame.width, &frame.height);
-
-  const auto main_window_size{ImVec2(frame.width, frame.height)};
-  const auto main_window_pos{ImVec2(kWindowPosX, 0)};
-
-  ImGui::SetNextWindowSize(main_window_size);
-  ImGui::SetNextWindowPos(main_window_pos);
+  auto frame = getFrameBuffer(window);
+  setWindowProperties(frame);
 
   if (ImGui::Begin(kApplicationName, NULL,
                    ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar |

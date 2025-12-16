@@ -12,6 +12,7 @@
 constexpr int kWindowWidth{1280};
 constexpr int kWindowHeight{720};
 constexpr int kWindowPosX{0};
+constexpr int kWindowPosY{0};
 
 constexpr const char *const kApplicationName{"Campo"};
 constexpr const char *const kButtonUndo{"Undo"};
