@@ -62,6 +62,7 @@ struct AppContext {
   bool detection_settings_locked{false};
   std::vector<cv::Rect> detection_results{};
   int detected_objects_count{0};
+  bool is_running{true};
 };
 
 /// @brief Get a list of available camera IDs.

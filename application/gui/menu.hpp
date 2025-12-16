@@ -89,16 +89,16 @@ void renderGui(GLFWwindow *window, utils::AppContext &app_context,
   auto frame = getFrameBuffer(window);
   setWindowProperties(frame);
 
-  if (ImGui::Begin(kApplicationName, NULL,
-                   ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar |
-                       ImGuiWindowFlags_NoMove)) {
+  ImGui::Begin(kApplicationName, &app_context.is_running,
+               ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+
+  {
     renderLeftPanel(window, app_context, grid_display);
-
     ImGui::SameLine();
-
     renderRightPanel(grid_display, *app_context.current_id_ptr, app_context);
-    ImGui::End();
   }
+
+  ImGui::End();
 
   ImGui::Render();
   glClear(GL_COLOR_BUFFER_BIT);
