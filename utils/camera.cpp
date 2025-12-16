@@ -149,10 +149,9 @@ processCameraFrames(utils::AppContext *app_context,
 }
 
 void initializeAppContext(utils::AppContext &app_context, GLFWwindow *window,
-                          std::vector<utils::CameraData> &&cameras,
                           int current_id) {
   app_context.cameras_ptr =
-      std::make_unique<std::vector<utils::CameraData>>(std::move(cameras));
+      std::make_unique<std::vector<utils::CameraData>>();
   app_context.current_id_ptr = std::make_unique<int>(current_id);
   glfwSetWindowUserPointer(window, &app_context);
   app_context.command_history_ptr =

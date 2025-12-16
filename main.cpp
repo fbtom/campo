@@ -43,15 +43,13 @@ int main() {
 
   auto window = utils::initWindowValue();
 
-  std::vector<utils::CameraData> cameras{};
   gui::GridDisplay grid_display{};
   auto initial_camera_ids = utils::getCameraIDs();
   int current_id{
       utils::getValidCameraID(initial_camera_ids, utils::loadCameraID())};
 
   utils::AppContext app_context{};
-  utils::initializeAppContext(app_context, window, std::move(cameras),
-                              current_id);
+  utils::initializeAppContext(app_context, window, current_id);
 
   utils::refreshCameraList(*app_context.cameras_ptr, initial_camera_ids);
 

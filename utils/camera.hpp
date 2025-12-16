@@ -91,7 +91,6 @@ processCameraFrames(AppContext *app_context,
                     std::optional<int> selected_camera_id = std::nullopt);
 
 void initializeAppContext(utils::AppContext &app_context, GLFWwindow *window,
-                          std::vector<utils::CameraData> &&cameras,
                           int current_id);
 
 } // namespace utils
