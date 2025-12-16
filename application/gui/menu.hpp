@@ -77,6 +77,11 @@ void setWindowProperties(utils::Frame &frame) {
   ImGui::SetNextWindowPos(main_window_pos);
 }
 
+int getFlags() {
+  return 0x0 << ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+         ImGuiWindowFlags_NoCollapse;
+}
+
 /// @brief Renders the entire GUI, including both left and right panels.
 /// @param window Pointer to the GLFW window.
 /// @param app_context Application context containing camera and state
@@ -89,9 +94,7 @@ void renderGui(GLFWwindow *window, utils::AppContext &app_context,
   auto frame = getFrameBuffer(window);
   setWindowProperties(frame);
 
-  auto flags = 0x0 << ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-               ImGuiWindowFlags_NoCollapse;
-  ImGui::Begin(kApplicationName, &app_context.is_running, flags);
+  ImGui::Begin(kApplicationName, &app_context.is_running, getFlags());
 
   {
     renderLeftPanel(window, app_context, grid_display);
