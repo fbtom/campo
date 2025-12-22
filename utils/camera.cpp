@@ -45,8 +45,8 @@ auto getValidCameraID(const std::vector<int> &camera_ids,
   return camera_ids[0];
 }
 
-void refreshCameraList(std::vector<CameraData> &container,
-                       const std::vector<int> &new_camera_ids) {
+void updateCameraList(std::vector<CameraData> &container,
+                      const std::vector<int> &new_camera_ids) {
   container.clear();
   for (const auto &id : new_camera_ids) {
     CameraData camera_data{};
@@ -148,18 +148,18 @@ processCameraFrames(utils::AppContext *app_context,
   return camera_streams;
 }
 
-void initializeAppContext(utils::AppContext &app_context, GLFWwindow *window,
-                          int current_id) {
-  app_context.cameras_ptr =
-      std::make_unique<std::vector<utils::CameraData>>();
-  app_context.current_id_ptr = std::make_unique<int>(current_id);
+auto initializeAppContext(GLFWwindow *window, int current_id)
+    -> utils::AppContext {
+  utils::AppContext app_context{
+      std::make_unique<std::vector<utils::CameraData>>(),
+      std::make_unique<int>(current_id),
+      std::make_unique<image::history::CommandHistory>(),
+      std::make_unique<image::process::ImageProcessorManager>(),
+      std::make_unique<image::region::RegionSelector>()};
+
   glfwSetWindowUserPointer(window, &app_context);
-  app_context.command_history_ptr =
-      std::make_unique<image::history::CommandHistory>();
-  app_context.image_processor_manager_ptr =
-      std::make_unique<image::process::ImageProcessorManager>();
-  app_context.region_selector_ptr =
-      std::make_unique<image::region::RegionSelector>();
+
+  return app_context;
 }
 
 } // namespace utils

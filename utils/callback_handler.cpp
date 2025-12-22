@@ -24,7 +24,7 @@ void crtlRCallback(GLFWwindow *win, int key, int scancode, int action, int mods,
   if (key == GLFW_KEY_R && action == GLFW_PRESS && (mods & GLFW_MOD_CONTROL)) {
     auto new_camera_ids = utils::getCameraIDs();
     if (context->cameras_ptr) {
-      refreshCameraList(*context->cameras_ptr, new_camera_ids);
+      updateCameraList(*context->cameras_ptr, new_camera_ids);
     }
     if (context->current_id_ptr) {
       *context->current_id_ptr =

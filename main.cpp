@@ -44,28 +44,22 @@ int main() {
   auto window = utils::initWindowValue();
 
   gui::GridDisplay grid_display{};
-  auto initial_camera_ids = utils::getCameraIDs();
-  int current_id{
-      utils::getValidCameraID(initial_camera_ids, utils::loadCameraID())};
+  auto cam_ids = utils::getCameraIDs();
+  auto current_id{utils::getValidCameraID(cam_ids, utils::loadCameraID())};
+  auto app_context{utils::initializeAppContext(window, current_id)};
 
-  utils::AppContext app_context{};
-  utils::initializeAppContext(app_context, window, current_id);
-
-  utils::refreshCameraList(*app_context.cameras_ptr, initial_camera_ids);
+  utils::updateCameraList(*app_context.cameras_ptr, cam_ids);
 
   glfwSetKeyCallback(window, utils::mainWindowCallback);
 
   while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();
 
-    std::optional<int> selected_camera =
-        grid_display.IsGridView() ? std::nullopt
-                                  : grid_display.GetSelectedCameraId();
-
-    std::vector<common::CameraStream> current_camera_streams{
-        utils::processCameraFrames(&app_context, selected_camera)};
-
-    grid_display.SetCameraData(current_camera_streams);
+    auto selected_cam = grid_display.IsGridView()
+                            ? std::nullopt
+                            : grid_display.GetSelectedCameraId();
+    auto cam_streams{utils::processCameraFrames(&app_context, selected_cam)};
+    grid_display.SetCameraData(cam_streams);
 
     renderGui(window, app_context, grid_display);
 
