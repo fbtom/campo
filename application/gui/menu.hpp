@@ -68,7 +68,8 @@ void initNewFrame() {
   ImGui::NewFrame();
 }
 
-void setWindowProperties(utils::Frame &frame) {
+void setWindowProperties(GLFWwindow *window) {
+  auto frame = getFrameSizeProperties(window);
 
   const auto main_window_size{ImVec2(frame.width, frame.height)};
   const auto main_window_pos{ImVec2(kWindowPosX, kWindowPosY)};
@@ -91,8 +92,7 @@ void renderGui(GLFWwindow *window, utils::AppContext &app_context,
                GridDisplay &grid_display) {
   initNewFrame();
 
-  auto frame = getFrameBuffer(window);
-  setWindowProperties(frame);
+  setWindowProperties(window);
 
   ImGui::Begin(kApplicationName, &app_context.is_running, getFlags());
 
