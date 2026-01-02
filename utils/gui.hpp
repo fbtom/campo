@@ -50,7 +50,7 @@ std::optional<GLFWwindow *> initWindow() {
 
   setupIoFlags();
 
-  ImGui::StyleColorsLight();
+  ImGui::StyleColorsDark();
 
   ImGui_ImplGlfw_InitForOpenGL(window, true);
   ImGui_ImplOpenGL3_Init("#version 410");

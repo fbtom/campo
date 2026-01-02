@@ -15,22 +15,9 @@ namespace camera_view {
 
 CameraViewAdapter::CameraViewAdapter() {}
 
-std::vector<common::CameraStream> CameraViewAdapter::ConvertStreamFormat(
-    const std::vector<common::CameraStream> &old_streams) {
-  std::vector<common::CameraStream> new_streams;
-
-  for (const auto &old_stream : old_streams) {
-    new_streams.push_back({old_stream.texture_id, old_stream.width,
-                           old_stream.height, old_stream.original_id});
-  }
-
-  return new_streams;
-}
-
 void CameraViewAdapter::SetCameraData(
     const std::vector<common::CameraStream> &streams) {
-  auto converted_streams = ConvertStreamFormat(streams);
-  controller_.SetCameraData(converted_streams);
+  controller_.SetCameraData(streams);
 }
 
 std::optional<int>

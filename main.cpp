@@ -43,41 +43,23 @@ int main() {
 
   auto window = utils::initWindowValue();
 
-  std::vector<utils::CameraData> cameras{};
   gui::GridDisplay grid_display{};
-  int current_id{0};
+  auto cam_ids = utils::getCameraIDs();
+  auto current_id{utils::getValidCameraID(cam_ids, utils::loadCameraID())};
+  auto app_context{utils::initializeAppContext(window, current_id)};
 
-  utils::AppContext app_context{};
-  app_context.cameras_ptr =
-      std::make_unique<std::vector<utils::CameraData>>(std::move(cameras));
-  app_context.current_id_ptr = std::make_unique<int>(current_id);
-  glfwSetWindowUserPointer(window, &app_context);
-
-  app_context.command_history_ptr =
-      std::make_unique<image::history::CommandHistory>();
-  app_context.image_processor_manager_ptr =
-      std::make_unique<image::process::ImageProcessorManager>();
-  app_context.region_selector_ptr =
-      std::make_unique<image::region::RegionSelector>();
-
-  auto initial_camera_ids = utils::getCameraIDs();
-  utils::refreshCameraList(*app_context.cameras_ptr, initial_camera_ids);
-  current_id =
-      utils::getValidCameraID(initial_camera_ids, utils::loadCameraID());
+  utils::updateCameraList(*app_context.cameras_ptr, cam_ids);
 
   glfwSetKeyCallback(window, utils::mainWindowCallback);
 
   while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();
 
-    std::optional<int> selected_camera =
-        grid_display.IsGridView() ? std::nullopt
-                                  : grid_display.GetSelectedCameraId();
-
-    std::vector<common::CameraStream> current_camera_streams{
-        utils::processCameraFrames(*app_context.cameras_ptr, selected_camera, &app_context)};
-
-    grid_display.SetCameraData(current_camera_streams);
+    auto selected_cam = grid_display.IsGridView()
+                            ? std::nullopt
+                            : grid_display.GetSelectedCameraId();
+    auto cam_streams{utils::processCameraFrames(&app_context, selected_cam)};
+    grid_display.SetCameraData(cam_streams);
 
     renderGui(window, app_context, grid_display);
 

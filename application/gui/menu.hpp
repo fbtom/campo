@@ -9,17 +9,18 @@
 
 #pragma once
 
+#include "glfw/utils.hpp"
 #include "grid_display.hpp"
+#include "gui_utils.hpp"
 #include "panel_renderer.hpp"
 #include "utils/frame.hpp"
-#include "gui_utils.hpp"
-#include <imgui.h>
 #include <GLFW/glfw3.h>
+#include <imgui.h>
 
 // Forward declarations
 extern void ImGui_ImplOpenGL3_NewFrame();
 extern void ImGui_ImplGlfw_NewFrame();
-extern void ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data);
+extern void ImGui_ImplOpenGL3_RenderDrawData(ImDrawData *draw_data);
 
 namespace gui {
 
@@ -67,6 +68,21 @@ void initNewFrame() {
   ImGui::NewFrame();
 }
 
+void setWindowProperties(GLFWwindow *window) {
+  auto frame = getFrameSizeProperties(window);
+
+  const auto main_window_size{ImVec2(frame.width, frame.height)};
+  const auto main_window_pos{ImVec2(kWindowPosX, kWindowPosY)};
+
+  ImGui::SetNextWindowSize(main_window_size);
+  ImGui::SetNextWindowPos(main_window_pos);
+}
+
+int getFlags() {
+  return 0x0 << ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+         ImGuiWindowFlags_NoCollapse;
+}
+
 /// @brief Renders the entire GUI, including both left and right panels.
 /// @param window Pointer to the GLFW window.
 /// @param app_context Application context containing camera and state
@@ -76,25 +92,17 @@ void renderGui(GLFWwindow *window, utils::AppContext &app_context,
                GridDisplay &grid_display) {
   initNewFrame();
 
-  utils::Frame frame{};
-  glfwGetFramebufferSize(window, &frame.width, &frame.height);
+  setWindowProperties(window);
 
-  const auto main_window_size{ImVec2(frame.width, frame.height)};
-  const auto main_window_pos{ImVec2(kWindowPosX, 0)};
+  ImGui::Begin(kApplicationName, &app_context.is_running, getFlags());
 
-  ImGui::SetNextWindowSize(main_window_size);
-  ImGui::SetNextWindowPos(main_window_pos);
-
-  if (ImGui::Begin(kApplicationName, NULL,
-                   ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar |
-                       ImGuiWindowFlags_NoMove)) {
+  {
     renderLeftPanel(window, app_context, grid_display);
-
     ImGui::SameLine();
-
     renderRightPanel(grid_display, *app_context.current_id_ptr, app_context);
-    ImGui::End();
   }
+
+  ImGui::End();
 
   ImGui::Render();
   glClear(GL_COLOR_BUFFER_BIT);

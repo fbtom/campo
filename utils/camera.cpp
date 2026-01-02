@@ -8,16 +8,16 @@
 ///
 
 #include "utils/camera.hpp"
-#include "application/image/image_process/image_processor_manager.hpp"
-#include "application/gui/detections_menu.hpp"
 #include "application/gui/detection_visualization.hpp"
+#include "application/gui/detections_menu.hpp"
+#include "application/image/image_process/image_processor_manager.hpp"
 #include <GLFW/glfw3.h>
 
 namespace utils {
 
 auto getCameraIDs() -> std::vector<int> {
-  std::vector<int> ids;
-  cv::VideoCapture cap;
+  std::vector<int> ids{};
+  cv::VideoCapture cap{};
   for (int i = 0; i < 10; ++i) {
     if (cap.open(i)) {
       ids.push_back(i);
@@ -45,8 +45,8 @@ auto getValidCameraID(const std::vector<int> &camera_ids,
   return camera_ids[0];
 }
 
-void refreshCameraList(std::vector<CameraData> &container,
-                       const std::vector<int> &new_camera_ids) {
+void updateCameraList(std::vector<CameraData> &container,
+                      const std::vector<int> &new_camera_ids) {
   container.clear();
   for (const auto &id : new_camera_ids) {
     CameraData camera_data{};
@@ -85,32 +85,35 @@ void updateCameraTexture(CameraData &camera) {
 }
 
 std::vector<common::CameraStream>
-processCameraFrames(std::vector<utils::CameraData> &cameras,
-                    std::optional<int> selected_camera_id,
-                    utils::AppContext* app_context) {
+processCameraFrames(utils::AppContext *app_context,
+                    std::optional<int> selected_camera_id) {
   auto camera_streams = std::vector<common::CameraStream>{};
+  auto &cameras = *app_context->cameras_ptr;
 
   // When in single camera view, only process the selected camera
   if (selected_camera_id.has_value()) {
     for (auto &camera : cameras) {
+      auto &frame = camera.frame;
       if (camera.is_available && camera.id == selected_camera_id.value()) {
         camera.capture.set(cv::CAP_PROP_FPS, 60);
-        camera.capture >> camera.frame;
+        camera.capture >> frame;
 
-        if (!camera.frame.empty()) {
+        if (!frame.empty()) {
           if (camera.processor_manager) {
-            camera.processor_manager->processFrame(camera.frame);
+            camera.processor_manager->processFrame(frame);
           }
-          
-          if (app_context && app_context->detectionEnabled) {
+
+          if (app_context && app_context->detection_enabled) {
             campo::gui::runDetectionOnFrame(*app_context);
-            campo::gui::drawDetectionResults(camera.frame, *app_context);
+            // TODO implement detection tracking across frames
+            // requires comparison between previous and current detected ids
+            // based on centroids or bounding boxes positions
+            campo::gui::drawDetectionResults(frame, *app_context);
           }
-          
+
           updateCameraTexture(camera);
           camera_streams.push_back({static_cast<ImTextureID>(camera.texture_id),
-                                    camera.frame.cols, camera.frame.rows,
-                                    camera.id});
+                                    frame.cols, frame.rows, camera.id});
         }
         break;
       } else {
@@ -143,6 +146,20 @@ processCameraFrames(std::vector<utils::CameraData> &cameras,
   }
 
   return camera_streams;
+}
+
+auto initializeAppContext(GLFWwindow *window, int current_id)
+    -> utils::AppContext {
+  utils::AppContext app_context{
+      std::make_unique<std::vector<utils::CameraData>>(),
+      std::make_unique<int>(current_id),
+      std::make_unique<image::history::CommandHistory>(),
+      std::make_unique<image::process::ImageProcessorManager>(),
+      std::make_unique<image::region::RegionSelector>()};
+
+  glfwSetWindowUserPointer(window, &app_context);
+
+  return app_context;
 }
 
 } // namespace utils

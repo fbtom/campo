@@ -1,7 +1,7 @@
 ///
 /// @file camera_menu.hpp
 /// @author fbtom
-/// @brief 
+/// @brief
 /// @date 2025-07-14
 ///
 /// @copyright Copyright (c) 2025
@@ -25,7 +25,7 @@ void renderCameraMenu(utils::AppContext &app_context,
   if (ImGui::MenuItem("Update list", kCtrlR)) {
     auto camera_ids = utils::getCameraIDs();
     if (!camera_ids.empty()) {
-      utils::refreshCameraList(*app_context.cameras_ptr, camera_ids);
+      utils::updateCameraList(*app_context.cameras_ptr, camera_ids);
       *app_context.current_id_ptr =
           utils::getValidCameraID(camera_ids, utils::loadCameraID());
     } else {

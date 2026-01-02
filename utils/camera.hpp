@@ -54,14 +54,15 @@ struct AppContext {
   std::unique_ptr<image::process::ImageProcessorManager>
       image_processor_manager_ptr{nullptr};
   std::unique_ptr<image::region::RegionSelector> region_selector_ptr{nullptr};
-  int blur_intensity{1};
 
-  campo::detections::DetectionAlgorithm selectedDetectionAlgorithm{
+  int blur_intensity{1};
+  campo::detections::DetectionAlgorithm selected_detection_algorithm{
       campo::detections::DetectionAlgorithm::GEOMETRIC_SHAPES};
-  bool detectionEnabled{false};
-  bool detectionSettingsLocked{false};
-  std::vector<cv::Rect> detectionResults;
-  int detectedObjectsCount{0};
+  bool detection_enabled{false};
+  bool detection_settings_locked{false};
+  std::vector<cv::Rect> detection_results{};
+  int detected_objects_count{0};
+  bool is_running{true};
 };
 
 /// @brief Get a list of available camera IDs.
@@ -78,17 +79,19 @@ auto getValidCameraID(const std::vector<int> &camera_ids,
 /// @brief Update the list of available cameras.
 /// @param container as a list of CameraData.
 /// @param new_camera_ids as a list of available camera IDs.
-void refreshCameraList(std::vector<CameraData> &container,
-                       const std::vector<int> &new_camera_ids);
+void updateCameraList(std::vector<CameraData> &container,
+                      const std::vector<int> &new_camera_ids);
 
 /// @brief Processes frames and generates a list of CameraStream.
-/// @param cameras as a list of CameraData representing the cameras.
+/// @param app_context as the application context containing camera data.
 /// @param selected_camera_id Optional ID of the selected camera to process
 /// (when in single camera view).
 /// @return std::vector<common::CameraStream> containing camera information.
 std::vector<common::CameraStream>
-processCameraFrames(std::vector<utils::CameraData> &cameras,
-                    std::optional<int> selected_camera_id = std::nullopt,
-                    AppContext *app_context = nullptr);
+processCameraFrames(AppContext *app_context,
+                    std::optional<int> selected_camera_id = std::nullopt);
+
+auto initializeAppContext(GLFWwindow *window, int current_id)
+    -> utils::AppContext;
 
 } // namespace utils

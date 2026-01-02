@@ -22,9 +22,6 @@ class CameraViewAdapter {
 private:
   CameraViewController controller_;
 
-  std::vector<common::CameraStream>
-  ConvertStreamFormat(const std::vector<common::CameraStream> &old_streams);
-
 public:
   CameraViewAdapter();
 
