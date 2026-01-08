@@ -11,6 +11,7 @@
 
 namespace utils {
 
+// TODO rename Frame to more appropiate word
 /// @brief A structure representing a frame with width and height.
 struct Frame {
   int width;
