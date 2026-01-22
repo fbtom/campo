@@ -11,6 +11,7 @@
 
 // System headers
 #include <iostream>
+#include <memory>
 #include <vector>
 // External headers
 #include "backends/imgui_impl_glfw.h"
@@ -23,6 +24,7 @@
 #include "application/gui/grid_display.hpp"
 #include "application/gui/gui_utils.hpp"
 #include "application/gui/menu.hpp"
+#include "application/gui/view.hpp"
 #include "application/image/image_process/image_processor_manager.hpp"
 #include "application/image/region/region_selector.hpp"
 #include "common/camera_stream.hpp"
@@ -51,6 +53,7 @@ int main() {
   utils::updateCameraList(*app_context.cameras_ptr, cam_ids);
 
   glfwSetKeyCallback(window, utils::mainWindowCallback);
+  gui::Context view_ctx{};
 
   while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();
@@ -61,7 +64,8 @@ int main() {
     auto cam_streams{utils::processCameraFrames(&app_context, selected_cam)};
     grid_display.SetCameraData(cam_streams);
 
-    renderGui(window, app_context, grid_display);
+    view_ctx.Render(window, app_context);
+    // renderGui(window, app_context, grid_display);
 
     glfwSwapBuffers(window);
   }

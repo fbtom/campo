@@ -35,8 +35,9 @@ void CameraGridView::RenderCameraFeeds(
     std::function<void(int)> on_camera_selected) {
   for (auto i = start_index; i < end_index; ++i) {
     ImGui::BeginChild(
-        ("CameraFeed" + std::to_string(i)).c_str(), item_size, true,
-        ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+        ("CameraFeed" + std::to_string(i)).c_str(), item_size, true
+        //,ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse
+    );
 
     const auto &feed = camera_streams_[i];
     ImVec2 child_content_size = ImGui::GetContentRegionAvail();

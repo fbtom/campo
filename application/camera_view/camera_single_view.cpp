@@ -55,7 +55,7 @@ CameraSingleView::Render(const ImVec2 &available_region_size,
     ImVec2 img_render_size;
     fitImageInBox(child_content_size, aspect_ratio, img_render_size);
     centerItemPosition(child_content_size, img_render_size);
-
+    ImGui::Text("%s", "HELLO THERE SIR");
     ImVec2 image_pos = ImGui::GetCursorScreenPos();
     ImGui::Image(feed.texture_id, img_render_size);
 

@@ -1,3 +1,4 @@
+#pragma once
 
 #include "utils/frame.hpp"
 #include <GLFW/glfw3.h>
