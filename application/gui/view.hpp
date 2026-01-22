@@ -78,7 +78,8 @@ public:
             app_context.gui_context.menu = utils::MenuState::SETTINGS;
           }
           if (ImGui::Button("SwapView")) {
-            app_context.gui_context.current_view = utils::Views::SINGLECAMVIEW;
+            app_context.gui_context.current_view =
+                utils::Views::MAINSINGLECAMVIEW;
           }
           if (ImGui::Button("Exit")) {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
@@ -276,7 +277,61 @@ public:
 
 class MainSingleCamView : public View {
 public:
-  void Render(GLFWwindow *window, utils::AppContext &app_context) override {}
+  void Render(GLFWwindow *window, utils::AppContext &app_context) override {
+    const auto parent_size = ImGui::GetContentRegionAvail();
+    // TODO learn about padding and apply it correctly
+    const auto width = parent_size.x * .95f - ImGui::GetStyle().ItemSpacing.x;
+    const auto height = parent_size.y * .95f - ImGui::GetStyle().ItemSpacing.y;
+    const auto start_pos_menu_x{(parent_size.x - width) * 0.5f};
+    const auto start_pos_menu_y{(parent_size.y - height) * 0.5f};
+    ImGui::SetCursorPos(ImVec2(start_pos_menu_x, start_pos_menu_y));
+
+    ImGui::BeginChild("Main", {width, height}, ImGuiChildFlags_Borders,
+                      ImGuiWindowFlags_NoScrollbar |
+                          ImGuiWindowFlags_NoScrollWithMouse);
+    {
+      const auto parent_size = ImGui::GetContentRegionAvail();
+      const auto width = parent_size.x;
+      const auto text_size = ImGui::CalcTextSize("Current Cam");
+      const auto height =
+          parent_size.y - text_size.y - ImGui::GetStyle().ItemSpacing.y * 2;
+
+      ImGui::BeginChild("Current Cam", {width, height}, ImGuiChildFlags_Borders,
+                        ImGuiWindowFlags_NoScrollbar |
+                            ImGuiWindowFlags_NoScrollWithMouse);
+
+      // const auto parent_size{ImGui::GetContentRegionAvail()};
+      // const auto current {
+      //   app_context.ImGui::Image(
+      //       static_cast<ImTextureID>(app_context.current_id_ptr), );
+      // }
+      ImGui::EndChild();
+
+      ImGui::BeginChild(
+          "Footer",
+          {parent_size.x, parent_size.y - ImGui::GetStyle().ItemSpacing.y * 2});
+      {
+        ImGui::Text("%s", "Cam View");
+        ImGui::SameLine();
+        // TODO keep state of which camera is currentply on
+        ImGui::Text("%s", "Cam ID X");
+        const auto parent_size{ImGui::GetContentRegionAvail()};
+        const auto arrow_left{ImGui::CalcTextSize("<-")};
+        const auto arrow_right{ImGui::CalcTextSize("->")};
+        const auto padding{ImGui::GetStyle().FramePadding};
+        const auto placement{parent_size.x - arrow_left.x - arrow_right.x -
+                             padding.x * 6};
+
+        ImGui::SameLine();
+        ImGui::SetCursorPosX(placement);
+        ImGui::Button("<-");
+        ImGui::SameLine();
+        ImGui::Button("->");
+      }
+      ImGui::EndChild();
+    }
+    ImGui::EndChild();
+  }
 };
 
 class MainMultiCamView : public View {

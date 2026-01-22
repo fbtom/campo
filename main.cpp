@@ -64,8 +64,8 @@ int main() {
     auto cam_streams{utils::processCameraFrames(&app_context, selected_cam)};
     grid_display.SetCameraData(cam_streams);
 
-    // view_ctx.Render(window, app_context);
-    renderGui(window, app_context, grid_display);
+    view_ctx.Render(window, app_context);
+    // renderGui(window, app_context, grid_display);
 
     glfwSwapBuffers(window);
   }
