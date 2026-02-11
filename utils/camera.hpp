@@ -47,6 +47,33 @@ struct CameraData {
   int last_frame_height{0};
 };
 
+enum class MenuState {
+  DEFAULT,
+  SETTINGS,
+};
+
+enum class Resolution { R800X600, R1920X1080, R1280X720, R640X480, SIZE };
+constexpr int toIndex(Resolution resolution) {
+  return static_cast<int>(resolution);
+}
+
+constexpr Resolution toEnum(int value) {
+  assert(value >= 0 && value < static_cast<int>(Resolution::SIZE));
+  return static_cast<Resolution>(value);
+}
+
+enum Views {
+  WELCOMEVIEW,
+  MAINSINGLECAMVIEW,
+  MAINMULTICAMVIEW,
+  SINGLECAMVIEW,
+};
+struct GuiContext {
+  MenuState menu{MenuState::DEFAULT};
+  Resolution window_size{Resolution::R800X600};
+  Views current_view{Views::WELCOMEVIEW};
+};
+
 struct AppContext {
   std::unique_ptr<std::vector<CameraData>> cameras_ptr{nullptr};
   std::unique_ptr<int> current_id_ptr{nullptr};
@@ -63,6 +90,7 @@ struct AppContext {
   std::vector<cv::Rect> detection_results{};
   int detected_objects_count{0};
   bool is_running{true};
+  GuiContext gui_context{};
 };
 
 /// @brief Get a list of available camera IDs.
